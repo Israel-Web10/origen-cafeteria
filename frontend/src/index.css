@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-charcoal font-body antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display text-espresso;
+  }
+  :focus-visible {
+    outline: 2px solid theme('colors.gold.DEFAULT');
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-wide transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-espresso text-cream hover:bg-espresso-light;
+  }
+  .btn-gold {
+    @apply btn bg-gold text-espresso hover:bg-gold-dark;
+  }
+  .btn-outline {
+    @apply btn border border-espresso/30 text-espresso hover:bg-espresso hover:text-cream;
+  }
+  .btn-ghost {
+    @apply btn text-espresso hover:bg-espresso/5;
+  }
+  .card {
+    @apply bg-white/60 rounded-card shadow-soft border border-espresso/5;
+  }
+  .input {
+    @apply w-full rounded-lg border border-espresso/20 bg-white px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition;
+  }
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-wider text-espresso/70 mb-1.5;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide;
+  }
+}
+
+/* Reduced motion respected */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
