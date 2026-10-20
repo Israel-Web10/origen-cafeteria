@@ -1,49 +1,35 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Order } from '../types';
-import { ORDER_STATUS_LABELS } from '../types';
-import * as orderService from '../services/orderService';
-import { PageLoading } from '../components/Loading';
+import { myOrders } from '../services/authService';
 import { EmptyState } from '../components/EmptyState';
+import { PageLoading } from '../components/Loading';
+import { formatDate, formatMoney } from '../lib/format';
+import { StatusBadge } from '../components/StatusBadge';
 
 export function MyOrders() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    orderService.listOrders().then(setOrders).finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <PageLoading />;
-
+  const { t, i18n } = useTranslation();
+  const [orders, setOrders] = useState<Order[] | null>(null);
+  useEffect(() => { myOrders({ limit: 100 }).then((r) => setOrders(r.orders)).catch(() => setOrders([])); }, []);
+  if (!orders) return <PageLoading />;
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      <h1 className="text-3xl mb-8">Mis pedidos</h1>
+    <div className="section max-w-3xl py-10">
+      <div className="flex justify-between items-center mb-6"><h1 className="text-4xl">{t('nav.myOrders')}</h1><Link to="/perfil" className="btn-outline btn-sm">{t('nav.profile')}</Link></div>
       {orders.length === 0 ? (
-        <EmptyState
-          title="Todavía no tienes pedidos"
-          description="Cuando hagas tu primer pedido, aparecerá aquí."
-          action={<Link to="/menu" className="btn-primary">Ver menú</Link>}
-        />
+        <EmptyState title={t('myOrders.emptyTitle')} description={t('myOrders.emptyText')} action={<Link to="/carta" className="btn-primary">{t('cart.browse')}</Link>} />
       ) : (
-        <div className="space-y-3">
-          {orders.map((order) => (
-            <Link
-              key={order.id}
-              to={`/pedido/${order.order_number}`}
-              className="card p-4 flex items-center justify-between hover:shadow-lift transition-shadow"
-            >
-              <div>
-                <p className="font-mono font-semibold text-espresso">{order.order_number}</p>
-                <p className="text-xs text-charcoal/50">{new Date(order.created_at).toLocaleString('es-BO')}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-mono font-semibold">Bs {Number(order.total).toFixed(2)}</p>
-                <span className="badge bg-gold/10 text-gold-dark text-xs">{ORDER_STATUS_LABELS[order.status]}</span>
-              </div>
-            </Link>
+        <ul className="space-y-3">
+          {orders.map((o) => (
+            <li key={o.id}>
+              <Link to={`/pedido/${o.order_number}`} className="card p-4 flex flex-wrap gap-3 items-center justify-between hover:shadow-lift transition">
+                <div><p className="font-mono font-semibold">{o.order_number}</p><p className="text-xs text-charcoal/60">{formatDate(o.created_at, i18n.language)}</p></div>
+                <div className="flex items-center gap-2"><StatusBadge status={o.status} /><StatusBadge payment={o.payment_status} /></div>
+                <p className="font-mono font-semibold">{formatMoney(o.total_cents, o.currency_code, i18n.language)}</p>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

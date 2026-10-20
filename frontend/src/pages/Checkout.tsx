@@ -1,264 +1,267 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { CartSummary } from '../components/CartDrawer';
-import * as settingsService from '../services/settingsService';
+import { useConfig } from '../context/ConfigContext';
+import { useQuote } from '../hooks/useQuote';
+import { CartLines, QuoteSummary } from '../components/CartDrawer';
 import * as paymentService from '../services/paymentService';
 import * as orderService from '../services/orderService';
-import { resolveImageUrl } from '../services/uploadService';
-import type { DeliveryType, DeliveryZone, PaymentMethod, Settings } from '../types';
+import { ApiError, assetUrl, errorMessage } from '../services/api';
+import type { DeliveryType, Locale, PaymentMethod } from '../types';
+import { tr } from '../lib/format';
+
+function newKey() {
+  return (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g, '');
+}
+
+export function methodInstructions(m: PaymentMethod | undefined, lang: string) {
+  if (!m) return '';
+  return (lang === 'en' && m.config.instructions_en) || (lang === 'fr' && m.config.instructions_fr) || m.config.instructions || '';
+}
 
 export function Checkout() {
-  const { items, subtotal, clear } = useCart();
+  const { t, i18n } = useTranslation();
+  const { items, clear } = useCart();
   const { user } = useAuth();
   const { notify } = useToast();
+  const { config, settings, displayCurrency, activeRate, money } = useConfig();
   const navigate = useNavigate();
 
-  const [settings, setSettings] = useState<Settings>({});
-  const [zones, setZones] = useState<DeliveryZone[]>([]);
-  const [methods, setMethods] = useState<PaymentMethod[]>([]);
-  const [loadingConfig, setLoadingConfig] = useState(true);
+  const pickupOn = settings.pickup_enabled !== 'false';
+  const deliveryOn = settings.delivery_enabled === 'true';
+  const [methods, setMethods] = useState<PaymentMethod[] | null>(null);
+  const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', email: user?.email || '', address: '', reference: '', observations: '' });
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>(pickupOn ? 'pickup' : 'delivery');
+  const [zoneId, setZoneId] = useState<number | undefined>(undefined);
+  const [methodId, setMethodId] = useState<number | null>(null);
+  const [accept, setAccept] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  const [customerName, setCustomerName] = useState(user?.name || '');
-  const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
-  const [customerEmail, setCustomerEmail] = useState(user?.email || '');
-  const [deliveryType, setDeliveryType] = useState<DeliveryType>('pickup');
-  const [address, setAddress] = useState('');
-  const [reference, setReference] = useState('');
-  const [zoneId, setZoneId] = useState<number | ''>('');
-  const [paymentMethodId, setPaymentMethodId] = useState<number | ''>('');
-  const [observations, setObservations] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const idempotency = useRef(newKey());
+  const zones = useMemo(() => (config?.deliveryZones || []).filter((z) => z.active), [config]);
+  const { quote, error: quoteError, loading: quoting } = useQuote(items, deliveryType, zoneId);
 
   useEffect(() => {
-    if (items.length === 0) navigate('/carrito');
-  }, [items, navigate]);
-
-  useEffect(() => {
-    Promise.all([settingsService.getSettings(), paymentService.listPaymentMethods()])
-      .then(([settingsData, methodsData]) => {
-        setSettings(settingsData.settings);
-        setZones(settingsData.deliveryZones);
-        setMethods(methodsData);
-        if (methodsData.length > 0) setPaymentMethodId(methodsData[0].id);
-      })
-      .finally(() => setLoadingConfig(false));
+    paymentService.listMethods().then((m) => {
+      const usable = m.filter((x) => !x.unavailable_reason);
+      setMethods(usable);
+      if (usable[0]) setMethodId(usable[0].id);
+    }).catch(() => setMethods([]));
   }, []);
+  useEffect(() => { if (user) setForm((f) => ({ ...f, name: f.name || user.name, email: f.email || user.email, phone: f.phone || user.phone || '' })); }, [user]);
 
-  const selectedZone = zones.find((z) => z.id === zoneId);
-  const deliveryFee = deliveryType === 'delivery' ? Number(selectedZone?.cost || 0) : 0;
-  const minOrder = Number(settings.delivery_min_order || 0);
-  const belowMinimum = deliveryType === 'delivery' && minOrder > 0 && subtotal < minOrder;
-  const selectedMethod = methods.find((m) => m.id === paymentMethodId);
+  if (items.length === 0 && !submitting) {
+    return (
+      <div className="section py-24 text-center">
+        <h1 className="text-3xl mb-3">{t('cart.emptyTitle')}</h1>
+        <Link to="/carta" className="btn-primary">{t('cart.browse')}</Link>
+      </div>
+    );
+  }
 
-  async function handleSubmit(e: React.FormEvent) {
+  const method = methods?.find((m) => m.id === methodId);
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  function validate() {
+    const errs: Record<string, string> = {};
+    if (form.name.trim().length < 2) errs.name = t('checkout.errors.name');
+    if (!/^[+\d][\d\s-]{5,29}$/.test(form.phone.trim())) errs.phone = t('checkout.errors.phone');
+    if (form.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) errs.email = t('checkout.errors.email');
+    if (deliveryType === 'delivery' && form.address.trim().length < 5) errs.address = t('checkout.errors.address');
+    if (deliveryType === 'delivery' && zones.length && !zoneId) errs.zone = t('checkout.errors.zone');
+    if (!methodId) errs.method = t('checkout.errors.method');
+    if (!accept) errs.accept = t('checkout.errors.accept');
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  }
+
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!customerName || !customerPhone) {
-      notify('Completa tu nombre y teléfono.', 'error');
+    if (submitting || !validate()) {
+      document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
       return;
     }
-    if (!paymentMethodId) {
-      notify('Selecciona un método de pago.', 'error');
-      return;
-    }
-    if (deliveryType === 'delivery' && !address) {
-      notify('Ingresa tu dirección de entrega.', 'error');
-      return;
-    }
-    if (belowMinimum) {
-      notify(`El pedido mínimo para delivery es Bs ${minOrder.toFixed(2)}.`, 'error');
-      return;
-    }
-
     setSubmitting(true);
     try {
       const order = await orderService.createOrder({
-        customerName,
-        customerPhone,
-        customerEmail: customerEmail || undefined,
+        customerName: form.name.trim(),
+        customerPhone: form.phone.trim(),
+        customerEmail: form.email.trim() || undefined,
         deliveryType,
-        deliveryAddress:
-          deliveryType === 'delivery'
-            ? {
-                recipient_name: customerName,
-                phone: customerPhone,
-                address,
-                reference: reference || undefined,
-                zone_id: zoneId ? Number(zoneId) : undefined,
-              }
-            : undefined,
-        paymentMethodId: Number(paymentMethodId),
-        items: items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
-        observations: observations || undefined,
-      });
+        deliveryAddress: deliveryType === 'delivery' ? { address: form.address.trim(), reference: form.reference.trim() || undefined, zone_id: zoneId } : undefined,
+        paymentMethodId: methodId!,
+        items: items.map((l) => ({ product_id: l.product_id, variant_id: l.variant_id, quantity: l.quantity })),
+        observations: form.observations.trim() || undefined,
+        displayCurrency: activeRate ? displayCurrency : undefined,
+        locale: i18n.language as Locale,
+        acceptTerms: true,
+      }, idempotency.current);
+      if (order.public_token) orderService.rememberOrder({ id: order.id, order_number: order.order_number, token: order.public_token, created_at: order.created_at });
       clear();
-      notify('¡Pedido realizado con éxito!', 'success');
-      navigate(`/pedido/${order.id}`);
-    } catch (err: any) {
-      notify(err.message || 'No se pudo crear el pedido.', 'error');
-    } finally {
+      notify(t('checkout.success'), 'success');
+      navigate(`/pedido/${order.order_number}?t=${encodeURIComponent(order.public_token || '')}`, { replace: true, state: { order, fresh: true } });
+    } catch (err) {
+      const apiErr = err as ApiError;
+      if (apiErr.details?.fields) {
+        setFieldErrors(Object.fromEntries(apiErr.details.fields.map((f) => [f.field, f.message])));
+      }
+      notify(errorMessage(err), 'error');
+      // Si el servidor rechazó el pedido, un nuevo intento debe usar otra clave
+      if (apiErr.status && apiErr.status < 500) idempotency.current = newKey();
       setSubmitting(false);
     }
   }
 
+  const fieldClass = (k: string) => `input ${fieldErrors[k] ? '!border-rose focus:!ring-rose/30' : ''}`;
+  const err = (k: string) => fieldErrors[k] && <p id={`err-${k}`} className="text-xs text-rose mt-1">{fieldErrors[k]}</p>;
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <h1 className="text-3xl mb-8">Finalizar pedido</h1>
-      <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-8">
-          {/* Datos del cliente */}
-          <div className="card p-5">
-            <h2 className="font-display text-xl mb-4">Tus datos</h2>
+    <div className="section py-10">
+      <h1 className="text-4xl mb-2">{t('checkout.title')}</h1>
+      <p className="text-charcoal/60 mb-8">{t('checkout.subtitle')}</p>
+      <form onSubmit={submit} noValidate className="grid lg:grid-cols-[1fr_400px] gap-8">
+        <div className="space-y-6">
+          <section className="card p-6" aria-labelledby="sec-data">
+            <h2 id="sec-data" className="text-2xl mb-4"><span className="text-gold-dark mr-2">1</span>{t('checkout.yourData')}</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="label">Nombre completo</label>
-                <input className="input" value={customerName} onChange={(e) => setCustomerName(e.target.value)} required />
+                <label className="label" htmlFor="c-name">{t('checkout.name')} *</label>
+                <input id="c-name" className={fieldClass('name')} value={form.name} onChange={set('name')} autoComplete="name" aria-invalid={!!fieldErrors.name} aria-describedby="err-name" required />
+                {err('name')}
               </div>
               <div>
-                <label className="label">Teléfono</label>
-                <input className="input" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} required />
+                <label className="label" htmlFor="c-phone">{t('checkout.phone')} *</label>
+                <input id="c-phone" className={fieldClass('phone')} value={form.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel" placeholder="+591 7…" aria-invalid={!!fieldErrors.phone} aria-describedby="err-phone" required />
+                {err('phone')}
               </div>
               <div className="sm:col-span-2">
-                <label className="label">Correo (opcional)</label>
-                <input type="email" className="input" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} />
+                <label className="label" htmlFor="c-email">{t('checkout.email')}</label>
+                <input id="c-email" type="email" className={fieldClass('email')} value={form.email} onChange={set('email')} autoComplete="email" aria-invalid={!!fieldErrors.email} aria-describedby="err-email" />
+                {err('email')}
+                <p className="text-xs text-charcoal/50 mt-1">{t('checkout.minimalData')}</p>
               </div>
             </div>
-          </div>
+            {!user && <p className="text-xs text-charcoal/60 mt-3">{t('checkout.guestHint')} <Link to="/login" state={{ from: '/checkout' }} className="underline text-gold-dark">{t('nav.login')}</Link></p>}
+          </section>
 
-          {/* Entrega */}
-          <div className="card p-5">
-            <h2 className="font-display text-xl mb-4">Modalidad de entrega</h2>
-            <div className="flex gap-3 mb-4">
-              {settings.pickup_enabled !== 'false' && (
-                <button
-                  type="button"
-                  onClick={() => setDeliveryType('pickup')}
-                  className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium ${
-                    deliveryType === 'pickup' ? 'border-gold bg-gold/10 text-espresso' : 'border-espresso/15 text-charcoal/60'
-                  }`}
-                >
-                  Recoger en cafetería
-                </button>
+          <section className="card p-6" aria-labelledby="sec-delivery">
+            <h2 id="sec-delivery" className="text-2xl mb-4"><span className="text-gold-dark mr-2">2</span>{t('checkout.delivery')}</h2>
+            <div className="grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label={t('checkout.delivery')}>
+              {pickupOn && (
+                <OptionCard checked={deliveryType === 'pickup'} onSelect={() => setDeliveryType('pickup')} title={t('checkout.pickup')} text={settings.address || t('checkout.pickupText')} />
               )}
-              {settings.delivery_enabled !== 'false' && (
-                <button
-                  type="button"
-                  onClick={() => setDeliveryType('delivery')}
-                  className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium ${
-                    deliveryType === 'delivery' ? 'border-gold bg-gold/10 text-espresso' : 'border-espresso/15 text-charcoal/60'
-                  }`}
-                >
-                  Delivery
-                </button>
+              {deliveryOn && (
+                <OptionCard checked={deliveryType === 'delivery'} onSelect={() => setDeliveryType('delivery')} title={t('checkout.deliveryOpt')} text={t('checkout.deliveryText')} />
               )}
             </div>
-
-            {deliveryType === 'pickup' && settings.address && (
-              <p className="text-sm text-charcoal/60">
-                Recoge tu pedido en: <strong className="text-espresso">{settings.address}</strong>
-              </p>
-            )}
-
             {deliveryType === 'delivery' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="label">Dirección</label>
-                  <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} required />
-                </div>
-                <div>
-                  <label className="label">Referencia (opcional)</label>
-                  <input className="input" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Ej: frente a la plaza, casa azul..." />
-                </div>
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="grid gap-4 mt-5 overflow-hidden">
                 {zones.length > 0 && (
                   <div>
-                    <label className="label">Zona</label>
-                    <select className="input" value={zoneId} onChange={(e) => setZoneId(e.target.value ? Number(e.target.value) : '')}>
-                      <option value="">Selecciona una zona</option>
-                      {zones.map((z) => (
-                        <option key={z.id} value={z.id}>{z.name} — Bs {Number(z.cost).toFixed(2)} ({z.estimated_time_minutes} min aprox.)</option>
-                      ))}
+                    <label className="label" htmlFor="c-zone">{t('checkout.zone')} *</label>
+                    <select id="c-zone" className={fieldClass('zone')} value={zoneId ?? ''} onChange={(e) => setZoneId(e.target.value ? Number(e.target.value) : undefined)} aria-invalid={!!fieldErrors.zone}>
+                      <option value="">{t('checkout.chooseZone')}</option>
+                      {zones.map((z) => <option key={z.id} value={z.id}>{z.name} · {money(z.cost_cents)} · ~{z.estimated_time_minutes} min</option>)}
                     </select>
+                    {err('zone')}
                   </div>
                 )}
-                {belowMinimum && (
-                  <p className="text-sm text-rose">El pedido mínimo para delivery es Bs {minOrder.toFixed(2)}.</p>
-                )}
-              </div>
+                <div>
+                  <label className="label" htmlFor="c-address">{t('checkout.address')} *</label>
+                  <input id="c-address" className={fieldClass('address')} value={form.address} onChange={set('address')} autoComplete="street-address" aria-invalid={!!fieldErrors.address} />
+                  {err('address')}
+                </div>
+                <div>
+                  <label className="label" htmlFor="c-ref">{t('checkout.reference')}</label>
+                  <input id="c-ref" className="input" value={form.reference} onChange={set('reference')} placeholder={t('checkout.referencePlaceholder')} />
+                </div>
+              </motion.div>
             )}
-          </div>
+          </section>
 
-          {/* Método de pago */}
-          <div className="card p-5">
-            <h2 className="font-display text-xl mb-4">Método de pago</h2>
-            {loadingConfig ? (
-              <p className="text-sm text-charcoal/50">Cargando métodos de pago...</p>
+          <section className="card p-6" aria-labelledby="sec-pay">
+            <h2 id="sec-pay" className="text-2xl mb-4"><span className="text-gold-dark mr-2">3</span>{t('checkout.payment')}</h2>
+            {methods === null ? <div className="skeleton h-16" /> : methods.length === 0 ? (
+              <p className="text-rose">{t('checkout.noMethods')}</p>
             ) : (
-              <div className="space-y-3">
-                {methods.map((method) => (
-                  <label
-                    key={method.id}
-                    className={`flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer ${
-                      paymentMethodId === method.id ? 'border-gold bg-gold/10' : 'border-espresso/15'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethodId === method.id}
-                      onChange={() => setPaymentMethodId(method.id)}
-                    />
-                    <span className="text-sm font-medium text-espresso">{method.name}</span>
-                    {method.type === 'card' && (
-                      <span className="badge bg-almond text-espresso/60 ml-auto text-[10px]">Próximamente</span>
-                    )}
-                  </label>
+              <div className="grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label={t('checkout.payment')}>
+                {methods.map((m) => (
+                  <OptionCard
+                    key={m.id}
+                    checked={methodId === m.id}
+                    onSelect={() => setMethodId(m.id)}
+                    title={tr(m, i18n.language)}
+                    text={t(`checkout.methodHint.${m.type}`)}
+                    badge={m.test_mode ? t('checkout.testMode') : undefined}
+                  />
                 ))}
-
-                {selectedMethod?.type === 'qr' && (
-                  <div className="mt-4 rounded-lg bg-almond/40 p-4 flex flex-col sm:flex-row gap-4 items-start">
-                    {selectedMethod.config?.qr_image && (
-                      <img
-                        src={resolveImageUrl(selectedMethod.config.qr_image)}
-                        alt="Código QR de pago"
-                        className="w-32 h-32 object-contain bg-white rounded-lg border border-espresso/10"
-                      />
-                    )}
-                    <div className="text-sm text-charcoal/70">
-                      {selectedMethod.config?.bank && <p><strong className="text-espresso">Entidad:</strong> {selectedMethod.config.bank}</p>}
-                      {selectedMethod.config?.account && <p><strong className="text-espresso">Cuenta:</strong> {selectedMethod.config.account}</p>}
-                      {selectedMethod.config?.instructions && <p className="mt-1">{selectedMethod.config.instructions}</p>}
-                      <p className="mt-2 text-xs text-charcoal/50">
-                        Podrás subir tu comprobante de pago justo después de confirmar el pedido.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {selectedMethod?.type === 'cash' && selectedMethod.config?.instructions && (
-                  <p className="text-sm text-charcoal/60 mt-2">{selectedMethod.config.instructions}</p>
-                )}
               </div>
             )}
-          </div>
+            {err('method')}
+            {method && (
+              <div className="mt-4 rounded-xl bg-almond/40 p-4 text-sm text-charcoal/80 flex gap-4 items-start">
+                {method.type === 'qr' && method.config.qr_image && (
+                  <img src={assetUrl(method.config.qr_image)} alt={t('payment.qrAlt')} className="w-28 h-28 object-contain bg-white rounded-lg border border-espresso/10 shrink-0" />
+                )}
+                <div>
+                  <p>{methodInstructions(method, i18n.language)}</p>
+                  {method.type === 'qr' && <p className="mt-2 text-xs">{t('checkout.qrAfter')}</p>}
+                  {method.type === 'card' && method.test_mode && <p className="mt-2 text-xs font-semibold text-rose">{t('checkout.testModeText')}</p>}
+                  <p className="mt-2 text-xs text-charcoal/60">{t('checkout.chargeCurrency', { currency: config?.currencies.find((c) => c.is_base)?.code || 'BOB' })}</p>
+                </div>
+              </div>
+            )}
+          </section>
 
-          <div>
-            <label className="label">Observaciones (opcional)</label>
-            <textarea className="input min-h-[90px]" value={observations} onChange={(e) => setObservations(e.target.value)} placeholder="Ej: sin azúcar, sin cebolla, tocar timbre..." />
-          </div>
+          <section className="card p-6">
+            <label className="label" htmlFor="c-obs">{t('checkout.observations')}</label>
+            <textarea id="c-obs" className="input min-h-[80px]" maxLength={500} value={form.observations} onChange={set('observations')} placeholder={t('checkout.observationsPlaceholder')} />
+          </section>
         </div>
 
-        {/* Resumen */}
-        <div className="md:col-span-1">
-          <div className="md:sticky md:top-24 space-y-4">
-            <CartSummary deliveryFee={deliveryFee} />
-            <button type="submit" className="btn-primary w-full" disabled={submitting || belowMinimum}>
-              {submitting ? 'Enviando pedido...' : 'Confirmar pedido'}
-            </button>
+        <aside className="lg:sticky lg:top-24 h-fit space-y-4">
+          <div className="card p-5">
+            <h2 className="text-xl mb-3">{t('cart.summary')}</h2>
+            <div className="max-h-64 overflow-y-auto mb-4"><CartLines editable={false} /></div>
+            {quoteError ? <p role="alert" className="text-sm text-rose">{quoteError.message} <Link to="/carrito" className="underline">{t('cart.viewFull')}</Link></p> : <QuoteSummary quote={quote} loading={quoting} deliveryLabel />}
+            {quote?.delivery_zone && <p className="text-xs text-charcoal/60 mt-2">{t('checkout.eta', { min: quote.delivery_zone.estimated_time_minutes })}</p>}
           </div>
-        </div>
+          <label className="flex items-start gap-3 text-sm card p-4 cursor-pointer">
+            <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-1 accent-gold w-4 h-4" aria-invalid={!!fieldErrors.accept} />
+            <span>
+              {t('checkout.accept1')} <Link to="/legal/order-conditions" target="_blank" className="underline text-gold-dark">{t('legal.orderConditions')}</Link>, <Link to="/legal/terms" target="_blank" className="underline text-gold-dark">{t('legal.terms')}</Link> {t('checkout.accept2')} <Link to="/legal/privacy" target="_blank" className="underline text-gold-dark">{t('legal.privacy')}</Link>.
+            </span>
+          </label>
+          {err('accept')}
+          <button type="submit" className="btn-gold w-full !py-4 text-base" disabled={submitting || !!quoteError || !methods?.length}>
+            {submitting ? t('checkout.sending') : quote ? t('checkout.confirmWithTotal', { total: money(quote.total_cents) }) : t('checkout.confirm')}
+          </button>
+          <p className="text-[11px] text-charcoal/50 text-center">{t('checkout.secureNote')}</p>
+        </aside>
       </form>
     </div>
+  );
+}
+
+function OptionCard({ checked, onSelect, title, text, badge }: { checked: boolean; onSelect: () => void; title: string; text?: string; badge?: string }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      onClick={onSelect}
+      className={`text-left rounded-xl border-2 p-4 transition-all ${checked ? 'border-gold bg-gold/10 shadow-soft' : 'border-espresso/10 bg-white/60 hover:border-espresso/30'}`}
+    >
+      <span className="flex items-center justify-between gap-2">
+        <span className="font-semibold text-espresso">{title}</span>
+        <span className={`w-4 h-4 rounded-full border-2 ${checked ? 'border-gold bg-gold' : 'border-espresso/30'}`} aria-hidden />
+      </span>
+      {badge && <span className="badge bg-rose text-cream mt-2">{badge}</span>}
+      {text && <span className="block text-xs text-charcoal/60 mt-1">{text}</span>}
+    </button>
   );
 }

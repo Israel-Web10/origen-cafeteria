@@ -1,87 +1,83 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
-import type { CartItem, Product } from '../types';
+// Carrito persistente en este dispositivo (localStorage). Solo guarda ids,
+// cantidades y una copia de nombre/precio para mostrar: el precio real, el
+// stock y los descuentos los recalcula siempre el servidor (cotización y pedido).
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
+import type { CartLine, Product, Variant } from '../types';
 
 interface CartContextValue {
-  items: CartItem[];
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: number) => void;
-  setQuantity: (productId: number, quantity: number) => void;
-  increment: (productId: number) => void;
-  decrement: (productId: number) => void;
+  items: CartLine[];
+  add: (product: Product, variant?: Variant | null, quantity?: number) => void;
+  setQuantity: (key: string, quantity: number) => void;
+  remove: (key: string) => void;
   clear: () => void;
-  subtotal: number;
   itemCount: number;
+  estimatedSubtotal: number;
+  drawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
+const STORAGE_KEY = 'origen_cart_v2';
+const MAX_QTY = 50;
 
-const STORAGE_KEY = 'origen_cart';
-
-function loadCart(): CartItem[] {
+function load(): CartLine[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((l) => Number.isInteger(l.product_id) && Number.isInteger(l.quantity) && l.quantity > 0).slice(0, 100);
   } catch {
     return [];
   }
 }
 
+export const lineKey = (productId: number, variantId?: number | null) => `${productId}:${variantId ?? 0}`;
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(loadCart);
+  const [items, setItems] = useState<CartLine[]>(load);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch { /* sin almacenamiento */ }
   }, [items]);
 
-  function addItem(product: Product, quantity = 1) {
+  // Sincroniza entre pestañas
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => { if (e.key === STORAGE_KEY) setItems(load()); };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const add = useCallback((product: Product, variant?: Variant | null, quantity = 1) => {
+    const key = lineKey(product.id, variant?.id);
+    const discountFactor = product.price_cents ? product.final_price_cents / product.price_cents : 1;
+    const unit = Math.round((product.price_cents + (variant?.price_delta_cents ?? 0)) * discountFactor);
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + quantity } : i
-        );
-      }
-      return [...prev, { product, quantity }];
+      const existing = prev.find((l) => l.key === key);
+      if (existing) return prev.map((l) => (l.key === key ? { ...l, quantity: Math.min(MAX_QTY, l.quantity + quantity), unit_price_cents: unit } : l));
+      return [...prev, {
+        key, product_id: product.id, variant_id: variant?.id ?? null, quantity: Math.min(MAX_QTY, quantity),
+        name: product.name, variant_name: variant?.name ?? null, image_url: product.image_url, unit_price_cents: unit,
+        slug: product.slug, translations: product.translations,
+      }];
     });
-  }
+  }, []);
 
-  function removeItem(productId: number) {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
-  }
+  const setQuantity = useCallback((key: string, quantity: number) => {
+    setItems((prev) => (quantity <= 0 ? prev.filter((l) => l.key !== key) : prev.map((l) => (l.key === key ? { ...l, quantity: Math.min(MAX_QTY, quantity) } : l))));
+  }, []);
 
-  function setQuantity(productId: number, quantity: number) {
-    if (quantity <= 0) return removeItem(productId);
-    setItems((prev) => prev.map((i) => (i.product.id === productId ? { ...i, quantity } : i)));
-  }
+  const remove = useCallback((key: string) => setItems((prev) => prev.filter((l) => l.key !== key)), []);
+  const clear = useCallback(() => setItems([]), []);
 
-  function increment(productId: number) {
-    setItems((prev) =>
-      prev.map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity + 1 } : i))
-    );
-  }
-
-  function decrement(productId: number) {
-    setItems((prev) =>
-      prev
-        .map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i))
-        .filter((i) => i.quantity > 0)
-    );
-  }
-
-  function clear() {
-    setItems([]);
-  }
-
-  const subtotal = useMemo(
-    () => items.reduce((sum, i) => sum + Number(i.product.price) * i.quantity, 0),
-    [items]
-  );
-  const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items]);
+  const itemCount = useMemo(() => items.reduce((s, l) => s + l.quantity, 0), [items]);
+  const estimatedSubtotal = useMemo(() => items.reduce((s, l) => s + l.unit_price_cents * l.quantity, 0), [items]);
 
   return (
-    <CartContext.Provider
-      value={{ items, addItem, removeItem, setQuantity, increment, decrement, clear, subtotal, itemCount }}
-    >
+    <CartContext.Provider value={{
+      items, add, setQuantity, remove, clear, itemCount, estimatedSubtotal,
+      drawerOpen, openDrawer: () => setDrawerOpen(true), closeDrawer: () => setDrawerOpen(false),
+    }}>
       {children}
     </CartContext.Provider>
   );

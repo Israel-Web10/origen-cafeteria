@@ -1,38 +1,37 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../context/CartContext';
-import { CartSummary } from '../components/CartDrawer';
+import { useQuote } from '../hooks/useQuote';
+import { CartLines, QuoteSummary } from '../components/CartDrawer';
 import { EmptyState } from '../components/EmptyState';
 
 export function CartPage() {
+  const { t } = useTranslation();
   const { items, clear } = useCart();
-  const navigate = useNavigate();
+  const { quote, error, loading } = useQuote(items);
 
   if (items.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16">
-        <EmptyState
-          title="Tu carrito está vacío"
-          description="Explora el menú y agrega tus productos favoritos."
-          action={<Link to="/menu" className="btn-primary">Ver menú</Link>}
-        />
+      <div className="section py-16">
+        <EmptyState title={t('cart.emptyTitle')} description={t('cart.emptyText')} action={<Link to="/carta" className="btn-primary">{t('cart.browse')}</Link>} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl">Tu carrito</h1>
-        <button className="text-sm text-rose hover:underline" onClick={clear}>Vaciar carrito</button>
-      </div>
-
-      <CartSummary />
-
-      <div className="flex flex-col sm:flex-row gap-3 mt-6">
-        <Link to="/menu" className="btn-outline flex-1 justify-center">Seguir comprando</Link>
-        <button className="btn-primary flex-1" onClick={() => navigate('/checkout')}>
-          Continuar al pago
-        </button>
+    <div className="section py-10">
+      <h1 className="text-4xl mb-8">{t('cart.title')}</h1>
+      <div className="grid md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 card p-5">
+          <CartLines />
+          <button className="text-sm text-rose hover:underline mt-4" onClick={clear}>{t('cart.clear')}</button>
+        </div>
+        <aside className="card p-5 h-fit md:sticky md:top-24 space-y-4">
+          <h2 className="text-xl">{t('cart.summary')}</h2>
+          {error ? <p role="alert" className="text-sm text-rose">{error.message}</p> : <QuoteSummary quote={quote} loading={loading} />}
+          <Link to="/checkout" className={`btn-gold w-full ${error ? 'pointer-events-none opacity-50' : ''}`} aria-disabled={!!error}>{t('cart.checkout')}</Link>
+          <Link to="/carta" className="btn-ghost w-full">{t('cart.keepShopping')}</Link>
+        </aside>
       </div>
     </div>
   );

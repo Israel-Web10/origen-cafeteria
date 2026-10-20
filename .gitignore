@@ -22,3 +22,14 @@ npm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+
+# Respaldos de base de datos (contienen datos personales: nunca al repositorio)
+*.dump
+*.dump.sha256
+backups/
+
+# Variables de producción del despliegue
+deploy/.env
+
+# Configuración local del editor/IA
+.claude/
