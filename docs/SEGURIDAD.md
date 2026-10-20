@@ -52,8 +52,12 @@ cifrado del disco del proveedor y respaldos con permisos restringidos.
 
 | Proyecto | Resultado | Valoración |
 |---|---|---|
-| Backend (producción) | 2 moderadas: `uuid` dentro de `exceljs` | Solo afecta si se pasa un buffer propio a `uuid`; ExcelJS no lo hace. Seguir la actualización de ExcelJS |
-| Frontend | 5 altas y 2 moderadas en `tailwindcss` 3 (braces, micromatch, postcss-selector-parser) | Herramientas de **compilación**; no llegan al navegador. Se resuelve migrando a Tailwind 4 (cambio mayor pendiente) |
+| Backend | **0 vulnerabilidades** | `nodemon` reemplazado por `node --watch` (nativo); `uuid` forzado a 11.1.1 con `overrides` (probado: reportes Excel OK) |
+| Frontend | 5 altas y 2 moderadas, todas dentro de `tailwindcss` 3 (`braces`, `micromatch`, `chokidar`, `fast-glob`, `postcss-selector-parser`) | Solo herramientas de **compilación**: no se incluyen en la web publicada (`dist/`). `braces` no tiene versión corregida publicada; se resuelve migrando a Tailwind 4 (cambio mayor pendiente) |
+
+Versiones mayores disponibles no adoptadas (React 19, Express 5, Vite 8, zod 4, etc.): las versiones en uso
+siguen recibiendo correcciones y no tienen vulnerabilidades conocidas; actualizarlas es un cambio planificado,
+no urgente.
 
 ## Riesgos residuales que requieren decisión del negocio
 

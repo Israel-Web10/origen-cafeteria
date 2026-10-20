@@ -70,6 +70,7 @@ Guía paso a paso para personas no técnicas: **[docs/INSTALACION.md](docs/INSTA
 |---|---|
 | [docs/AUDITORIA.md](docs/AUDITORIA.md) | Fase 1: diagnóstico del proyecto original |
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Fase 2: decisiones técnicas y su justificación |
+| [docs/GUIA-VSCODE.md](docs/GUIA-VSCODE.md) | Ejecutar web y base de datos desde Visual Studio Code, comando por comando |
 | [docs/INSTALACION.md](docs/INSTALACION.md) | Instalación desde cero (Windows / Linux) |
 | [docs/BASE-DE-DATOS.md](docs/BASE-DE-DATOS.md) | Esquema, roles, migraciones, backups, restauración, actualización |
 | [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) | Hosting, dominio, HTTPS, variables, rollback, costos |
