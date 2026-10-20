@@ -1,46 +1,56 @@
 /** @type {import('tailwindcss').Config} */
+// Los colores apuntan a variables CSS (src/index.css) para que el gerente pueda
+// elegir entre paletas predefinidas con contraste verificado, sin romper la UI.
+const v = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
+
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        espresso: {
-          DEFAULT: '#2A1A12',
-          light: '#3D2A1E',
-        },
-        cream: {
-          DEFAULT: '#F6EFE4',
-          dark: '#EFE4D2',
-        },
-        almond: '#E4D5BE',
-        gold: {
-          DEFAULT: '#B98A3E',
-          dark: '#96702F',
-          light: '#D4A85F',
-        },
-        olive: {
-          DEFAULT: '#4A5A3A',
-          dark: '#3A4830',
-        },
-        charcoal: '#3A2E26',
-        rose: '#A63D40',
+        espresso: { DEFAULT: v('espresso'), light: v('espresso-light') },
+        cream: { DEFAULT: v('cream'), dark: v('cream-dark') },
+        almond: v('almond'),
+        gold: { DEFAULT: v('gold'), dark: v('gold-dark'), light: v('gold-light') },
+        olive: { DEFAULT: v('olive'), dark: v('olive-dark') },
+        charcoal: v('charcoal'),
+        rose: v('rose'),
       },
       fontFamily: {
         display: ['"Fraunces"', 'ui-serif', 'Georgia', 'serif'],
         body: ['"Inter"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
-      borderRadius: {
-        card: '0.75rem',
-      },
+      borderRadius: { card: '1rem' },
       boxShadow: {
-        soft: '0 4px 24px -8px rgba(42, 26, 18, 0.18)',
-        lift: '0 12px 32px -12px rgba(42, 26, 18, 0.35)',
+        soft: '0 4px 24px -8px rgb(var(--c-espresso) / 0.18)',
+        lift: '0 18px 40px -16px rgb(var(--c-espresso) / 0.45)',
+        glow: '0 0 60px -10px rgb(var(--c-gold) / 0.55)',
       },
-      backgroundImage: {
-        'ring-motif': "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Ccircle cx='200' cy='200' r='180' fill='none' stroke='%23B98A3E' stroke-width='1' opacity='0.15'/%3E%3Ccircle cx='200' cy='200' r='140' fill='none' stroke='%23B98A3E' stroke-width='1' opacity='0.12'/%3E%3C/svg%3E\")",
+      keyframes: {
+        steam: {
+          '0%': { transform: 'translate3d(0, 0, 0) scaleY(0.8)', opacity: '0' },
+          '25%': { opacity: '0.55' },
+          '100%': { transform: 'translate3d(12px, -120px, 0) scaleY(1.3)', opacity: '0' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translate3d(0, 0, 0) rotate(var(--r, 0deg))' },
+          '50%': { transform: 'translate3d(0, -14px, 0) rotate(calc(var(--r, 0deg) + 6deg))' },
+        },
+        flicker: {
+          '0%, 100%': { opacity: '0.85' },
+          '45%': { opacity: '1' },
+          '55%': { opacity: '0.75' },
+        },
+        shimmer: { '100%': { transform: 'translateX(100%)' } },
+      },
+      animation: {
+        steam: 'steam 4.5s ease-out infinite',
+        float: 'float 7s ease-in-out infinite',
+        flicker: 'flicker 5s ease-in-out infinite',
+        shimmer: 'shimmer 1.4s infinite',
       },
     },
   },
   plugins: [],
-}
+};

@@ -1,0 +1,27 @@
+# Servicio systemd para la API de ORIGEN (alternativa a Docker en un VPS).
+#   sudo cp deploy/systemd/origen-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now origen-api
+#   journalctl -u origen-api -f        # ver logs
+[Unit]
+Description=ORIGEN API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=origen
+Group=origen
+WorkingDirectory=/opt/origen/backend
+EnvironmentFile=/opt/origen/backend/.env
+ExecStartPre=/usr/bin/node scripts/migrate.js
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=5
+# Endurecimiento
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/origen/backend/uploads
+
+[Install]
+WantedBy=multi-user.target

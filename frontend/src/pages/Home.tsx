@@ -1,148 +1,187 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { Product, Category, Settings } from '../types';
-import * as productService from '../services/productService';
-import * as categoryService from '../services/categoryService';
-import * as settingsService from '../services/settingsService';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+import type { Category, ImageAsset, Product, Promotion } from '../types';
+import * as catalog from '../services/catalogService';
+import { listImages } from '../services/contentService';
+import { ImmersiveHero } from '../components/ImmersiveHero';
 import { ProductCard } from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/Loading';
-import { resolveImageUrl } from '../services/uploadService';
+import { Carousel } from '../components/Carousel';
+import { CacaoPod, CoffeeBean, ChocolateSquare } from '../components/Brand';
+import { useConfig, useCalmMotion } from '../context/ConfigContext';
+import { assetUrl } from '../services/api';
+import { formatDate, tr } from '../lib/format';
+import { openStatus, parseHours } from '../lib/hours';
+import { staggerContainer, staggerItem } from '../lib/transitions';
+
+function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const calm = useCalmMotion();
+  return (
+    <motion.div className={className} initial={calm ? false : { opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.7, ease: [0.22, 0.8, 0.2, 1] }}>
+      {children}
+    </motion.div>
+  );
+}
+
+const CATEGORY_ART = [CoffeeBean, CacaoPod, ChocolateSquare];
 
 export function Home() {
-  const [featured, setFeatured] = useState<Product[]>([]);
+  const { t, i18n } = useTranslation();
+  const { settings } = useConfig();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [settings, setSettings] = useState<Settings>({});
-  const [loading, setLoading] = useState(true);
+  const [featured, setFeatured] = useState<Product[] | null>(null);
+  const [popular, setPopular] = useState<Product[]>([]);
+  const [promos, setPromos] = useState<Promotion[]>([]);
+  const [gallery, setGallery] = useState<ImageAsset[]>([]);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     Promise.all([
-      productService.listProducts(),
-      categoryService.listCategories(),
-      settingsService.getSettings(),
+      catalog.listCategories(),
+      catalog.listProducts({ featured: true, limit: 12 }),
+      catalog.listProducts({ sort: 'popular', limit: 8 }),
+      catalog.listPromotions(),
+      listImages('facility').catch(() => []),
     ])
-      .then(([products, cats, settingsData]) => {
-        setFeatured(products.slice(0, 4));
+      .then(([cats, feat, pop, pr, imgs]) => {
         setCategories(cats);
-        setSettings(settingsData.settings);
+        setFeatured(feat);
+        setPopular(pop.filter((p) => (p.popularity ?? 0) > 0));
+        setPromos(pr);
+        setGallery(imgs);
       })
-      .finally(() => setLoading(false));
+      .catch(() => { setFailed(true); setFeatured([]); });
   }, []);
+
+  const hours = parseHours(settings.opening_hours);
+  const status = openStatus(hours, settings.timezone);
+  const lang = i18n.language;
 
   return (
     <div>
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-espresso text-cream">
-        <div className="absolute inset-0 bg-ring-motif bg-no-repeat bg-right opacity-60 pointer-events-none" />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 md:py-28 relative grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <span className="badge bg-gold/20 text-gold-light mb-4">
-              {settings.cafe_slogan || 'Café artesanal, de origen a taza'}
-            </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl leading-[1.05] mb-6 text-cream">
-              El café que empieza<br />donde otros terminan.
-            </h1>
-            <p className="text-cream/70 text-lg mb-8 max-w-md">
-              Tostado en pequeños lotes, servido con intención. Pide en línea y recíbelo fresco,
-              o pásate por {settings.cafe_name || 'ORIGEN'}.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link to="/menu" className="btn-gold">Ver el menú</Link>
-              <Link to="/seguimiento" className="btn border border-cream/30 text-cream hover:bg-cream/10">
-                Seguir un pedido
-              </Link>
-            </div>
-          </div>
-          <div className="relative hidden md:block">
-            <div className="aspect-square rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center">
-              <div className="aspect-square w-4/5 rounded-full bg-almond/10 border border-cream/10 flex items-center justify-center">
-                <span className="font-display text-8xl text-gold/40">O</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <ImmersiveHero />
+
+      {/* Categorías: la puerta a cada espacio de la carta */}
+      <section id="explorar" className="section pt-20 pb-10">
+        <Reveal>
+          <p className="eyebrow mb-2">{t('home.exploreEyebrow')}</p>
+          <h2 className="text-3xl md:text-5xl mb-8">{t('home.exploreTitle')}</h2>
+        </Reveal>
+        {failed && <p className="text-rose">{t('errors.network_error')}</p>}
+        <motion.ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          {categories.map((c, i) => {
+            const Art = CATEGORY_ART[i % CATEGORY_ART.length];
+            return (
+              <motion.li key={c.id} variants={staggerItem}>
+                <Link to={`/carta/${c.slug}`} className="group relative block aspect-[4/5] rounded-card overflow-hidden bg-espresso shadow-soft">
+                  {c.image_url
+                    ? <img src={assetUrl(c.image_url)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                    : <Art className="absolute -right-4 -bottom-4 w-28 opacity-40 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700" />}
+                  <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/30 to-transparent" />
+                  <div className="absolute bottom-0 p-4">
+                    <h3 className="text-cream text-xl leading-tight">{tr(c, lang)}</h3>
+                    {c.product_count ? <p className="text-cream/60 text-xs mt-1">{t('home.productCount', { count: c.product_count })}</p> : null}
+                  </div>
+                </Link>
+              </motion.li>
+            );
+          })}
+        </motion.ul>
       </section>
 
-      {/* CATEGORIES */}
-      {categories.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
-          <h2 className="text-2xl mb-6">Categorías</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                to={`/menu?categoria=${cat.id}`}
-                className="shrink-0 px-5 py-3 rounded-full bg-almond/60 hover:bg-almond text-espresso text-sm font-medium transition-colors"
-              >
-                {cat.name}
-              </Link>
-            ))}
+      {/* Destacados */}
+      <section className="section py-12">
+        <Reveal><p className="eyebrow mb-2">{t('home.featuredEyebrow')}</p><h2 className="text-3xl md:text-4xl mb-8">{t('home.featuredTitle')}</h2></Reveal>
+        {featured === null ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)}</div>
+        ) : featured.length ? (
+          <Carousel label={t('home.featuredTitle')}>{featured.map((p) => <ProductCard key={p.id} product={p} />)}</Carousel>
+        ) : (
+          <p className="text-charcoal/60">{t('home.noFeatured')} <Link to="/carta" className="underline text-gold-dark">{t('home.ctaMenu')}</Link></p>
+        )}
+      </section>
+
+      {/* Promociones vigentes */}
+      {promos.length > 0 && (
+        <section className="py-12">
+          <div className="section">
+            <Reveal className="rounded-card bg-gradient-to-br from-espresso to-espresso-light text-cream p-8 md:p-12 relative overflow-hidden">
+              <CacaoPod className="absolute -right-6 -top-6 w-40 opacity-25 rotate-12" />
+              <p className="eyebrow !text-gold-light mb-2">{t('home.promoEyebrow')}</p>
+              <h2 className="text-3xl md:text-4xl text-cream mb-6">{t('home.promoTitle')}</h2>
+              <ul className="grid md:grid-cols-2 gap-4 relative">
+                {promos.slice(0, 4).map((p) => (
+                  <li key={p.id} className="rounded-xl bg-cream/10 border border-cream/15 p-4 backdrop-blur">
+                    <p className="font-display text-xl text-cream">{tr(p, lang)}</p>
+                    <p className="text-cream/70 text-sm">
+                      {p.kind === 'percent' ? `−${p.value}%` : t('product.promo')} · {p.product_name || p.category_name} · {t('home.until', { date: formatDate(p.ends_at, lang, { dateStyle: 'medium' }) })}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <Link to="/promociones" className="btn-gold mt-6 relative">{t('home.promoCta')}</Link>
+            </Reveal>
           </div>
         </section>
       )}
 
-      {/* FEATURED PRODUCTS */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl">Destacados</h2>
-          <Link to="/menu" className="text-sm font-medium text-gold-dark hover:underline">
-            Ver todo →
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
-            : featured.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
-
-      {/* ABOUT */}
-      <section id="nosotros" className="bg-almond/40 mt-20 py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <h2 className="text-3xl mb-4">Nuestra historia</h2>
-            <p className="text-charcoal/70 leading-relaxed mb-4">
-              {settings.cafe_name || 'ORIGEN'} nació de la idea simple de que el café merece
-              cuidado en cada paso: desde el productor hasta la taza. Seleccionamos granos de
-              origen único, tostamos en lotes pequeños y preparamos cada bebida a mano.
-            </p>
-            <p className="text-charcoal/70 leading-relaxed">
-              Cada visita — o cada pedido — es una invitación a bajar el ritmo un momento.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-square rounded-card bg-espresso/90" />
-            <div className="aspect-square rounded-card bg-gold/70 mt-8" />
-          </div>
-        </div>
-      </section>
-
-      {/* LOCATION */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 grid md:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-2xl mb-4">Visítanos</h2>
-          <ul className="space-y-3 text-charcoal/70">
-            {settings.address && <li><strong className="text-espresso">Dirección:</strong> {settings.address}</li>}
-            {settings.phone && <li><strong className="text-espresso">Teléfono:</strong> {settings.phone}</li>}
-            {settings.opening_hours && (
-              <li><strong className="text-espresso">Horarios:</strong> Lun-Vie 07:00-20:00, Sáb 08:00-20:00, Dom 08:00-14:00</li>
-            )}
-          </ul>
-          {settings.gmaps_link && (
-            <a href={settings.gmaps_link} target="_blank" rel="noreferrer" className="btn-outline mt-6 inline-flex">
-              Cómo llegar
-            </a>
-          )}
-        </div>
-        <div className="rounded-card overflow-hidden bg-almond aspect-video flex items-center justify-center text-charcoal/40 text-sm">
-          {settings.latitude && settings.longitude
-            ? `Mapa: ${settings.latitude}, ${settings.longitude}`
-            : 'Mapa no configurado'}
-        </div>
-      </section>
-
-      {settings.logo_url && (
-        <img src={resolveImageUrl(settings.logo_url)} alt="" className="hidden" />
+      {/* Lo más pedido (datos reales de ventas de los últimos 90 días) */}
+      {popular.length > 0 && (
+        <section className="section py-12">
+          <Reveal><p className="eyebrow mb-2">{t('home.popularEyebrow')}</p><h2 className="text-3xl md:text-4xl mb-8">{t('home.popularTitle')}</h2></Reveal>
+          <Carousel label={t('home.popularTitle')}>{popular.map((p) => <ProductCard key={p.id} product={p} />)}</Carousel>
+        </section>
       )}
+
+      {/* Historia */}
+      <section className="section py-16 grid md:grid-cols-2 gap-10 items-center">
+        <Reveal className="relative aspect-[4/3] rounded-card overflow-hidden shadow-lift">
+          {settings.story_poster_url && <img src={assetUrl(settings.story_poster_url)} alt="" className="w-full h-full object-cover" loading="lazy" />}
+          <div className="absolute inset-0 bg-gradient-to-tr from-espresso/60 to-transparent" />
+          <p className="absolute bottom-3 left-3 text-[11px] text-cream/70 bg-espresso/50 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</p>
+        </Reveal>
+        <Reveal>
+          <p className="eyebrow mb-2">{t('home.storyEyebrow')}</p>
+          <h2 className="text-3xl md:text-5xl mb-4">{t('home.storyTitle')}</h2>
+          <p className="text-charcoal/70 text-lg mb-6">{t('home.storyText')}</p>
+          <Link to="/historia" className="btn-outline">{t('home.ctaStory')}</Link>
+        </Reveal>
+      </section>
+
+      {/* Galería del local (fotos subidas por el gerente) */}
+      {gallery.length > 0 && (
+        <section className="section py-12">
+          <Reveal><h2 className="text-3xl md:text-4xl mb-8">{t('home.galleryTitle')}</h2></Reveal>
+          <Carousel label={t('home.galleryTitle')} itemClassName="w-[85%] sm:w-[48%] lg:w-[32%]">
+            {gallery.map((img) => (
+              <figure key={img.id} className="relative aspect-[4/3] rounded-card overflow-hidden">
+                <img src={assetUrl(img.url)} alt={img.alt_text || ''} loading="lazy" className="w-full h-full object-cover" />
+                {img.is_illustrative && <figcaption className="absolute bottom-2 left-2 text-[11px] text-cream bg-espresso/60 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</figcaption>}
+              </figure>
+            ))}
+          </Carousel>
+        </section>
+      )}
+
+      {/* Visítanos */}
+      <section className="section py-16">
+        <Reveal className="card p-8 md:p-10 grid md:grid-cols-[1.2fr_1fr] gap-8 items-center">
+          <div>
+            <span className={`badge mb-3 ${status.open ? 'bg-olive/15 text-olive' : 'bg-rose/10 text-rose'}`}>
+              ● {status.open ? t('hours.openNow', { time: status.closesAt }) : status.opensAt ? t('hours.closedNow', { day: t(`days.${status.opensDay}`), time: status.opensAt }) : t('hours.closed')}
+            </span>
+            <h2 className="text-3xl md:text-4xl mb-3">{t('home.visitTitle')}</h2>
+            <p className="text-charcoal/70 mb-6">{settings.address || t('visit.addressPending')}{settings.city ? ` · ${settings.city}` : ''}</p>
+            <div className="flex flex-wrap gap-3">
+              <Link to="/visitanos" className="btn-primary">{t('home.ctaVisit')}</Link>
+              <Link to="/seguimiento" className="btn-outline">{t('nav.track')}</Link>
+            </div>
+          </div>
+          <div className="hidden md:flex justify-center"><CoffeeBean className="w-28 opacity-80 animate-float" /></div>
+        </Reveal>
+      </section>
     </div>
   );
 }

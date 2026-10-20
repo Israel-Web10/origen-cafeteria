@@ -1,63 +1,77 @@
 const jwt = require('jsonwebtoken');
+const env = require('../config/env');
+const { one } = require('../config/db');
+
+const STAFF = ['manager', 'admin'];
+
+function signToken(user) {
+  return jwt.sign(
+    { sub: user.id, role: user.role, tv: user.token_version },
+    env.JWT_SECRET,
+    { expiresIn: env.JWT_EXPIRES_IN, algorithm: 'HS256' }
+  );
+}
 
 /**
- * Verifica el JWT en el header Authorization: Bearer <token>.
- * Si es válido, adjunta { id, role } en req.user.
- * Esta ruta es OBLIGATORIA (rechaza si no hay token).
+ * Verifica el token y comprueba contra la BD que el usuario siga activo, con
+ * el mismo rol y la misma `token_version` (permite revocar sesiones al cambiar
+ * contraseña, desactivar la cuenta o cambiar el rol).
  */
-function requireAuth(req, res, next) {
+async function resolveUser(req) {
   const header = req.headers.authorization || '';
   const [scheme, token] = header.split(' ');
-
-  if (scheme !== 'Bearer' || !token) {
-    return res.status(401).json({ error: 'No autenticado. Token faltante.' });
-  }
-
+  if (scheme !== 'Bearer' || !token) return null;
+  let payload;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: payload.id, role: payload.role, email: payload.email };
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Token inválido o expirado.' });
+    payload = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
+  } catch {
+    return undefined; // token presente pero inválido/expirado
   }
+  const user = await one(
+    'SELECT id, name, email, role, active, token_version, preferred_locale FROM users WHERE id = $1',
+    [payload.sub]
+  );
+  if (!user || !user.active || user.token_version !== payload.tv) return undefined;
+  return { id: user.id, role: user.role, email: user.email, name: user.name, locale: user.preferred_locale };
 }
 
-/**
- * Igual que requireAuth pero NO rechaza si no hay token: simplemente
- * deja req.user como null. Útil para endpoints que se comportan distinto
- * si el usuario está identificado (ej: crear pedido como invitado o logueado).
- */
+function requireAuth(req, res, next) {
+  resolveUser(req)
+    .then((user) => {
+      if (!user) {
+        return res.status(401).json({
+          error: user === null ? 'No autenticado.' : 'Sesión inválida o expirada.',
+          code: user === null ? 'unauthenticated' : 'session_expired',
+        });
+      }
+      req.user = user;
+      next();
+    })
+    .catch(next);
+}
+
 function optionalAuth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const [scheme, token] = header.split(' ');
-
-  if (scheme === 'Bearer' && token) {
-    try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = { id: payload.id, role: payload.role, email: payload.email };
-    } catch (err) {
-      req.user = null;
-    }
-  } else {
-    req.user = null;
-  }
-  next();
+  resolveUser(req)
+    .then((user) => {
+      req.user = user || null;
+      next();
+    })
+    .catch(next);
 }
 
-/**
- * Restringe el acceso a ciertos roles. Debe usarse después de requireAuth.
- * Uso: requireRole('admin')
- */
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ error: 'No autenticado.' });
-    }
+    if (!req.user) return res.status(401).json({ error: 'No autenticado.', code: 'unauthenticated' });
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'No tienes permisos para esta acción.' });
+      return res.status(403).json({ error: 'No tienes permisos para esta acción.', code: 'forbidden' });
     }
     next();
   };
 }
 
-module.exports = { requireAuth, optionalAuth, requireRole };
+const requireStaff = [requireAuth, requireRole(...STAFF)];
+const requireAdmin = [requireAuth, requireRole('admin')];
+
+const isStaff = (user) => Boolean(user && STAFF.includes(user.role));
+
+module.exports = { signToken, requireAuth, optionalAuth, requireRole, requireStaff, requireAdmin, isStaff, STAFF };
