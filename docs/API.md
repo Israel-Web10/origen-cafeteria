@@ -1,13 +1,17 @@
 # API de ORIGEN
 
-Base: `/api` (en desarrollo `http://localhost:4000/api`). JSON en todas las respuestas.
+Base: **`/api/v1`** (en desarrollo `http://localhost:4000/api/v1`). `/api` es un alias de la versión vigente
+para clientes antiguos. Todas las respuestas llevan la cabecera `API-Version: v1`; `GET /api/v1/version`
+devuelve `{api, version}`. Un cambio incompatible se publicará como `/api/v2` sin retirar `v1` de golpe
+(ver [CHANGELOG.md](../CHANGELOG.md)). JSON en todas las respuestas. Las rutas de abajo son relativas a la base.
 
 - **Autenticación:** `Authorization: Bearer <token>` (se obtiene en `/auth/login` o `/auth/register`).
 - **Roles:** `client`, `manager` (gerente), `admin`. "Personal" = gerente o admin.
 - **Errores:** `{ "error": "mensaje en español", "code": "codigo_estable", "details"?: { "fields": [...] } }`.
   El frontend traduce por `code`.
 - **Importes:** enteros en centavos de la moneda base (`*_cents`).
-- **Límites:** 300 req/min por IP en general; más estrictos en autenticación, pedidos, seguimiento, subidas y reportes (429).
+- **Caché:** las lecturas públicas anónimas pueden venir de la micro-caché (cabecera `X-Cache: HIT|MISS|STALE|COALESCED`, máx. 10 s; se invalida al editar).
+- **Límites:** 300 req/min por IP en general (configurable); más estrictos en autenticación, pedidos, seguimiento, subidas y reportes (429).
 
 ## Autenticación y cuenta
 
@@ -111,4 +115,4 @@ Estados del pago (separados): `pendiente`, `en_verificacion`, `pagado`, `rechaza
 
 ## Salud
 
-`GET /api/health` → `{status, db, uptime_s}` (503 si la base no responde).
+`GET /api/v1/health` → `{status, db, uptime_s}` (503 si la base no responde). `GET /api/v1/version` → `{api: "v1", version}`.

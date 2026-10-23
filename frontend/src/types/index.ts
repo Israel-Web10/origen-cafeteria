@@ -361,6 +361,14 @@ export interface AnalyticsSummary {
     | { available: false; reason: string; required_days: number; active_days: number; message: string };
   inventory: { id: number; name: string; unit: string; quantity: string; min_quantity: string; daily_consumption: number; coverage_days: number | null; low: boolean }[];
   data_quality: { days_with_sales_total: number };
+  insights: Insight[];
+}
+
+/** Recomendación generada por reglas en el servidor; el texto se traduce en el panel. */
+export interface Insight {
+  code: string;
+  severity: 'warn' | 'info' | 'good';
+  params: Record<string, string | number>;
 }
 
 export interface RankedProduct {

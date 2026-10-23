@@ -1,11 +1,11 @@
 {
   "name": "origen-backend",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "API REST de ORIGEN (Express + PostgreSQL)",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node src/cluster.js",
     "dev": "node --watch src/server.js",
     "migrate": "node scripts/migrate.js",
     "migrate:status": "node scripts/migrate.js --status",

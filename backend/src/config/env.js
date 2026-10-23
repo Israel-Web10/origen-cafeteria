@@ -28,6 +28,13 @@ const schema = z.object({
   MAX_UPLOAD_SIZE_MB: z.coerce.number().positive().max(20).default(5),
   PUBLIC_API_URL: z.string().optional(),
 
+  // Escalabilidad: micro-caché de lecturas públicas (0 = desactivada) y límite general por IP.
+  // En pruebas la caché se desactiva por defecto para que cada lectura vea el estado recién escrito.
+  PUBLIC_CACHE_TTL_MS: z.coerce.number().int().min(0).max(300000).default(process.env.NODE_ENV === 'test' ? 0 : 10000),
+  RATE_LIMIT_GENERAL_PER_MIN: z.coerce.number().int().positive().default(300),
+  // Procesos de Node (src/cluster.js). Cada uno abre hasta DB_POOL_MAX conexiones a PostgreSQL.
+  WEB_CONCURRENCY: z.coerce.number().int().min(1).max(32).default(1),
+
   REPORT_MAX_ROWS: z.coerce.number().int().positive().default(50000),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 

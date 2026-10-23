@@ -68,7 +68,18 @@
     "storyTitle": "Una historia que empieza en el grano",
     "storyText": "Seleccionamos café y cacao con cuidado, los preparamos al momento y los servimos sin prisas.",
     "galleryTitle": "Nuestro espacio",
-    "visitTitle": "Te esperamos"
+    "visitTitle": "Te esperamos",
+    "street": {
+      "label": "Calle frente a la cafetería",
+      "alt": "Ilustración de la fachada de {{name}} con el Illimani al fondo",
+      "title": "Bienvenido a {{name}}. Pasa, el café ya está listo.",
+      "enter": "Entrar a la cafetería",
+      "locate": "Ubicación",
+      "open": "ABIERTO",
+      "closed": "CERRADO",
+      "illustration": "Fachada ilustrada. El letrero de la puerta muestra el horario real.",
+      "photoNote": "Fachada del local."
+    }
   },
   "menu": {
     "eyebrow": "La carta",
@@ -372,7 +383,8 @@
     "directions": "Cómo llegar",
     "map": "Mapa de ubicación",
     "mapPending": "La ubicación en el mapa aún no está configurada.",
-    "timezone": "Horarios en la zona horaria {{tz}}."
+    "timezone": "Horarios en la zona horaria {{tz}}.",
+    "mapIllustration": "Mapa ilustrativo. Debajo tienes el mapa real con la ubicación exacta."
   },
   "promos": {
     "eyebrow": "Ofertas",
@@ -569,7 +581,26 @@
       "top": "Más vendidos",
       "bottom": "Menos vendidos",
       "abcHelp": "Clasificación ABC: A = productos que generan el 80% de las ventas; B = siguiente 15%; C = último 5%.",
-      "prevToDate": "Mismo tramo del periodo anterior ({{from}} → {{to}}, sin incluir el último día)"
+      "prevToDate": "Mismo tramo del periodo anterior ({{from}} → {{to}}, sin incluir el último día)",
+      "insights": {
+        "title": "Recomendaciones automáticas",
+        "subtitle": "Reglas sobre tus propios datos del periodo. Sin IA ni servicios externos: cada sugerencia explica de dónde sale.",
+        "none": "Sin alertas para este periodo. Con más pedidos aparecerán sugerencias.",
+        "low_stock": "{{count}} insumo(s) bajo el mínimo ({{names}}). Repón antes de la próxima hora pico.",
+        "stock_runout": "«{{name}}» alcanza para unos {{days}} día(s) al ritmo actual de consumo.",
+        "cancel_rate": "El {{pct}} % de los pedidos se canceló. Revisa los motivos en Pedidos (falta de stock, demora, pago).",
+        "discount_heavy": "Los descuentos son el {{pct}} % de la venta bruta. Comprueba que las promociones sigan siendo rentables.",
+        "revenue_drop": "La venta bajó {{pct}} % frente al periodo anterior comparable.",
+        "revenue_up": "La venta subió {{pct}} % frente al periodo anterior comparable.",
+        "peak_hour": "Hora pico: {{hour}}:00 ({{share}} % de los pedidos). Refuerza personal y deja insumos listos antes.",
+        "slow_weekday": "{{day}} es el día más flojo (menos de la mitad que {{bestDay}}). Buen candidato para una promoción.",
+        "concentration": "«{{name}}» concentra el {{pct}} % de los ingresos. Asegura su stock y considera impulsar otros productos.",
+        "unsold": "{{count}} producto(s) activo(s) sin ventas en el periodo ({{names}}). Revisa precio, foto o visibilidad.",
+        "missing_costs": "Solo el {{pct}} % de lo vendido tiene costo registrado. Carga recetas o costos para ver el margen.",
+        "anomaly_low": "El {{date}} la venta fue atípicamente baja. ¿Hubo un corte, un feriado o un problema?",
+        "aiTitle": "¿Y la IA?",
+        "aiText": "Estas reglas cubren lo que un asistente de IA diría con tus volúmenes actuales, sin costo ni envío de datos a terceros. Ver docs/IA-Y-COSTOS.md si más adelante quieres un resumen en lenguaje natural."
+      }
     },
     "orders": {
       "subtitle": "Se actualiza automáticamente cada 30 segundos.",
@@ -906,7 +937,10 @@
       "discard": "Descartar",
       "publish": "Publicar cambios",
       "saved_one": "{{count}} cambio publicado.",
-      "saved_other": "{{count}} cambios publicados."
+      "saved_other": "{{count}} cambios publicados.",
+      "streetScene": "Portada «desde la calle» (fachada y botón Ubicación)",
+      "facade": "Foto real de la fachada",
+      "facadeHint": "Vacío = fachada ilustrada de la marca. Sube la foto del frente del local en Imágenes (tipo «Instalaciones») y elígela aquí."
     },
     "currencies": {
       "subtitle": "Moneda base: {{base}}. Los precios oficiales y los cobros están siempre en la moneda base.",

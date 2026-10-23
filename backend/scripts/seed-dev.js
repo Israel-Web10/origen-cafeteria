@@ -57,6 +57,15 @@ const PRODUCTS = [
     { en: { name: 'Origen breakfast' }, fr: { name: 'Petit-déjeuner Origen' } }, [], [['Café en grano', 18]]],
 ];
 
+// Fotos de demostración (Unsplash License, ver docs/RECURSOS-Y-LICENCIAS.md)
+const PRODUCT_IMAGES = {
+  'Espresso': 'espresso', 'Cappuccino': 'cappuccino', 'Café Origen': 'cafe-origen',
+  'Chocolate caliente de cacao boliviano': 'hot-chocolate', 'Mocaccino': 'mocaccino', 'Iced Latte': 'iced-latte',
+  'Frappé de caramelo': 'frappe', 'Croissant de almendra': 'croissant', 'Brownie de cacao': 'brownie', 'Desayuno Origen': 'breakfast',
+};
+const CATEGORY_IMAGES = { cafes: 'latte-art', 'chocolate-y-cacao': 'hot-chocolate', 'bebidas-frias': 'iced-latte', reposteria: 'croissant', desayunos: 'breakfast' };
+const media = (n) => (n ? `/media/menu/${n}.webp` : null);
+
 const ITEMS = [
   ['Café en grano', 'g', 8000, 2000, 0.12],
   ['Leche entera', 'ml', 40000, 8000, 0.0085],
@@ -91,16 +100,16 @@ async function main() {
       }
       const catIds = {};
       for (const [i, [name, slug, desc, tr]] of CATEGORIES.entries()) {
-        const r = await one(`INSERT INTO categories (name, slug, description, display_order, translations) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-          [name, slug, desc, i + 1, tr], client);
+        const r = await one(`INSERT INTO categories (name, slug, description, display_order, translations, image_url) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+          [name, slug, desc, i + 1, tr, media(CATEGORY_IMAGES[slug])], client);
         catIds[slug] = r.id;
       }
       for (const [cat, name, desc, price, cost, stock, flags, tr, variants, recipe] of PRODUCTS) {
         const slug = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
         const p = await one(
-          `INSERT INTO products (category_id, name, slug, description, price_cents, cost_cents, stock, is_featured, is_new, prep_time_minutes, translations)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
-          [catIds[cat], name, slug, desc, Math.round(price * 100), Math.round(cost * 100), stock, !!flags.is_featured, !!flags.is_new, flags.prep ?? null, tr], client);
+          `INSERT INTO products (category_id, name, slug, description, price_cents, cost_cents, stock, is_featured, is_new, prep_time_minutes, translations, image_url)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+          [catIds[cat], name, slug, desc, Math.round(price * 100), Math.round(cost * 100), stock, !!flags.is_featured, !!flags.is_new, flags.prep ?? null, tr, media(PRODUCT_IMAGES[name])], client);
         if (stock) {
           await client.query(`INSERT INTO stock_movements (product_id, type, quantity_delta, balance_after, reason, created_by) VALUES ($1,'entrada',$2,$2,'Stock inicial (demo)',$3)`, [p.id, stock, admin.id]);
         }
@@ -120,6 +129,12 @@ async function main() {
         ('address', 'Dirección de ejemplo (configurar en el panel)'), ('phone', '+591 70000000'), ('whatsapp', '+591 70000000'),
         ('delivery_enabled', 'true'), ('latitude', '-16.5000'), ('longitude', '-68.1500')
         ON CONFLICT (key) DO NOTHING`);
+    }
+    for (const [name, img] of Object.entries(PRODUCT_IMAGES)) {
+      await client.query('UPDATE products SET image_url = $2 WHERE name = $1 AND image_url IS NULL', [name, media(img)]);
+    }
+    for (const [slug, img] of Object.entries(CATEGORY_IMAGES)) {
+      await client.query('UPDATE categories SET image_url = $2 WHERE slug = $1 AND image_url IS NULL', [slug, media(img)]);
     }
     await client.query('COMMIT');
     console.log('Datos de desarrollo listos.');

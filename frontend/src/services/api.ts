@@ -1,9 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import i18n from '../i18n';
 
-// En producción la API puede estar en el mismo dominio (/api) o en otro (VITE_API_URL).
+// En producción la API puede estar en el mismo dominio (/api/v1) o en otro (VITE_API_URL).
+// Se fija la versión v1 de la API: un cambio incompatible futuro (v2) no rompe este build.
 // Nunca se incrusta "localhost" en el build de producción.
-export const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api';
+export const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api/v1';
 export const API_ORIGIN = API_URL.startsWith('http') ? new URL(API_URL).origin : '';
 
 export const TOKEN_KEY = 'origen_token';

@@ -20,4 +20,4 @@ USER origen
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1:4000/api/health || exit 1
 # Aplica migraciones pendientes y arranca
-CMD ["sh", "-c", "node scripts/migrate.js && node scripts/seed-reference.js && node src/server.js"]
+CMD ["sh", "-c", "node scripts/migrate.js && node scripts/seed-reference.js && node src/cluster.js"]

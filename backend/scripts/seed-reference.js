@@ -46,6 +46,22 @@ async function main() {
         inserted += r.rowCount;
       }
     }
+    // Galería inicial: fotogramas ILUSTRATIVOS de los videos entregados por el propietario.
+    // El gerente puede eliminarlos y subir fotos reales del local desde Imágenes.
+    const gallery = await client.query("SELECT COUNT(*)::int AS n FROM images WHERE entity_type = 'facility'");
+    if (gallery.rows[0].n === 0) {
+      const frames = [
+        ['interior-amplio', 'Salón principal de noche'], ['interior-mesa', 'Mesa junto a la ventana'],
+        ['interior-barra', 'Barra y estanterías'], ['rincon-chimenea', 'Rincón con chimenea'], ['detalle-taza', 'Detalle de una taza'],
+      ];
+      for (const [i, [file, alt]] of frames.entries()) {
+        await client.query(
+          `INSERT INTO images (entity_type, url, alt_text, is_illustrative, source, license, display_order)
+           VALUES ('facility', $1, $2, TRUE, 'Fotograma de video entregado por el propietario', 'Por confirmar (ver docs/RECURSOS-Y-LICENCIAS.md)', $3)`,
+          [`/media/gallery/${file}.webp`, alt, i]
+        );
+      }
+    }
     await client.query('COMMIT');
     console.log(`Datos de referencia listos (${inserted} página(s) nueva(s)).`);
   } catch (err) {

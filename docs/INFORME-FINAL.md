@@ -95,6 +95,33 @@ respaldo/restauración con datos idénticos.
 | Faltaba protección ante errores de interfaz | `ErrorBoundary` global |
 | Enlaces del Markdown permitían `\` | Solo rutas internas sin `//` ni `\` |
 
+## Actualización 2.1.0 (2026-10-23)
+
+Detalle en [CHANGELOG.md](../CHANGELOG.md).
+
+**Portada e imágenes**
+- Portada «desde la calle» con fachada ilustrada y transición a mapa en *Visítanos*.
+- Fotos de carta (Unsplash) y galería con fotogramas de los videos del propietario.
+
+**Panel**
+- Recomendaciones automáticas por reglas en el panel, sin IA ni costo
+  (análisis de la opción de IA: [IA-Y-COSTOS.md](IA-Y-COSTOS.md)).
+
+**API y rendimiento**
+- API versionada `/api/v1`.
+- Micro-caché sin estampida, multiproceso y límites globales en Nginx
+  ([ESCALABILIDAD.md](ESCALABILIDAD.md): 1000 conexiones simultáneas, 0 errores).
+
+**Seguridad**
+- Escáner de secretos con gancho `pre-commit` y prueba de inyección SQL.
+
+**Errores corregidos**
+- Las cabeceras de seguridad de Nginx se perdían en `index.html`.
+- Las imágenes de `/media/<carpeta>/…` eran rechazadas en la configuración.
+
+**Cookies e impuestos por país:** no requieren cambios. El banner ya cumple el criterio europeo y los
+impuestos los fija la venta en Bolivia ([LEGAL.md](LEGAL.md#visitantes-de-otros-países-bolivia-francia-canadá)).
+
 ## 11. Pendiente
 
 | Tema | Detalle |
@@ -112,7 +139,7 @@ respaldo/restauración con datos idénticos.
 ## 12. Riesgos de seguridad residuales
 
 Verificación manual de QR (puede haber comprobantes falsificados), token en `localStorage` (mitigado por CSP),
-límites por IP en memoria, dependencias de compilación de Tailwind 3. Detalle en [SEGURIDAD.md](SEGURIDAD.md).
+límites por IP en memoria (por proceso; el tope global lo pone Nginx), dependencias de compilación de Tailwind 3. Detalle en [SEGURIDAD.md](SEGURIDAD.md).
 
 ## 13. Servicios externos utilizados
 

@@ -1,14 +1,15 @@
 // Ubicación, horarios y contacto.
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { SceneBand } from '../components/ImmersiveHero';
-import { useConfig } from '../context/ConfigContext';
-import { assetUrl } from '../services/api';
+import { motion } from 'framer-motion';
+import { CityMap } from '../components/StreetScene';
+import { useConfig, useCalmMotion } from '../context/ConfigContext';
 import { DAYS, openStatus, parseHours } from '../lib/hours';
 
 export function Visit() {
   const { t } = useTranslation();
   const { settings } = useConfig();
+  const calm = useCalmMotion();
   const hours = parseHours(settings.opening_hours);
   const status = openStatus(hours, settings.timezone);
   const lat = settings.latitude;
@@ -24,11 +25,22 @@ export function Visit() {
 
   return (
     <div>
-      <SceneBand eyebrow={t('visit.eyebrow')} title={t('visit.title')} subtitle={settings.address || t('visit.addressPending')} image={assetUrl(settings.hero_poster_url)}>
-        <span className={`badge mt-5 ${status.open ? 'bg-olive text-cream' : 'bg-rose text-cream'}`}>
-          ● {status.open ? t('hours.openNow', { time: status.closesAt }) : status.opensAt ? t('hours.closedNow', { day: t(`days.${status.opensDay}`), time: status.opensAt }) : t('hours.closed')}
-        </span>
-      </SceneBand>
+      {/* Continúa el movimiento de la portada: el mapa se desplaza hasta el pin del local */}
+      <section className="relative overflow-hidden bg-espresso text-cream pt-16 min-h-[420px]">
+        <motion.div className="absolute inset-0" initial={calm ? false : { scale: 1.6, x: '12%', y: '-8%' }} animate={{ scale: 1.15, x: '0%', y: '0%' }} transition={{ duration: 1.6, ease: [0.3, 0, 0.2, 1] }} style={{ transformOrigin: '50% 52%' }}>
+          <CityMap className="w-full h-full" pinLabel={settings.business_name || 'ORIGEN'} />
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-r from-espresso/95 via-espresso/70 to-transparent" aria-hidden />
+        <div className="relative section py-16 md:py-24">
+          <p className="eyebrow !text-gold-light mb-3">{t('visit.eyebrow')}</p>
+          <h1 className="text-4xl md:text-6xl text-cream text-glow">{t('visit.title')}</h1>
+          <p className="text-cream/80 mt-4 max-w-xl text-lg">{settings.address || t('visit.addressPending')}</p>
+          <span className={`badge mt-5 ${status.open ? 'bg-olive text-cream' : 'bg-rose text-cream'}`}>
+            ● {status.open ? t('hours.openNow', { time: status.closesAt }) : status.opensAt ? t('hours.closedNow', { day: t(`days.${status.opensDay}`), time: status.opensAt }) : t('hours.closed')}
+          </span>
+          <p className="text-[11px] text-cream/60 mt-3">{t('visit.mapIllustration')}</p>
+        </div>
+      </section>
       <div className="section py-14 grid lg:grid-cols-2 gap-10">
         <div className="space-y-6">
           <section className="card p-6">

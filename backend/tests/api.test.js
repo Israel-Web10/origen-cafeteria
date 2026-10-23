@@ -394,3 +394,43 @@ test('privacidad: exportar y eliminar la cuenta propia', async () => {
   assert.equal(rows[0].customer_phone, '—');
   assert.equal(rows[0].customer_email, null);
 });
+
+test('inyección SQL: entradas maliciosas se tratan como texto', async () => {
+  const payloads = ["' OR '1'='1", "'; DROP TABLE orders; --", "1; DELETE FROM users", "\\' UNION SELECT password_hash FROM users --", "%' OR 1=1 --"];
+  const before = (await pool.query('SELECT COUNT(*)::int AS n FROM users')).rows[0].n;
+  for (const p of payloads) {
+    let res = await request(app).get('/api/products').query({ search: p });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.products.length, 0, `búsqueda "${p}" no debe devolver todo`);
+    res = await request(app).get('/api/products').query({ category: p });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.products.length, 0);
+    res = await request(app).post('/api/auth/login').send({ email: `x${p}@a.com`, password: p });
+    assert.ok([400, 401].includes(res.status));
+    res = await request(app).get(`/api/orders/track/${encodeURIComponent(p)}`);
+    assert.equal(res.status, 400);
+    res = await request(app).get('/api/orders').set(auth(ctx.managerToken)).query({ search: p });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.orders.length, 0);
+    res = await request(app).get(`/api/products/${encodeURIComponent(p)}`);
+    assert.ok([400, 404].includes(res.status));
+  }
+  // Sort no admite expresiones: solo valores de una lista blanca
+  assert.equal((await request(app).get('/api/products').query({ sort: 'price_asc; DROP TABLE products' })).status, 400);
+  assert.equal((await pool.query('SELECT COUNT(*)::int AS n FROM users')).rows[0].n, before);
+  assert.equal((await pool.query("SELECT to_regclass('public.orders') IS NOT NULL AS ok")).rows[0].ok, true);
+});
+
+test('versionado: /api/v1 y el alias /api responden igual, con cabecera de versión', async () => {
+  const v1 = await request(app).get('/api/v1/products');
+  const alias = await request(app).get('/api/products');
+  assert.equal(v1.status, 200);
+  assert.equal(v1.headers['api-version'], 'v1');
+  assert.deepEqual(v1.body, alias.body);
+  const ver = await request(app).get('/api/v1/version');
+  assert.equal(ver.body.api, 'v1');
+  assert.match(ver.body.version, /^\d+\.\d+\.\d+$/);
+  const missing = await request(app).get('/api/v1/no-existe');
+  assert.equal(missing.status, 404);
+  assert.equal((await request(app).get('/api/v1/health')).body.db, 'ok');
+});

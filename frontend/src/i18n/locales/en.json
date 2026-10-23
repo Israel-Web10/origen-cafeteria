@@ -68,7 +68,18 @@
     "storyTitle": "A story that begins with the bean",
     "storyText": "We carefully select coffee and cacao, prepare them to order and serve them unhurried.",
     "galleryTitle": "Our space",
-    "visitTitle": "We are waiting for you"
+    "visitTitle": "We are waiting for you",
+    "street": {
+      "label": "Street in front of the café",
+      "alt": "Illustration of the {{name}} storefront with Illimani in the background",
+      "title": "Welcome to {{name}}. Come in, your coffee is ready.",
+      "enter": "Step inside",
+      "locate": "Location",
+      "open": "OPEN",
+      "closed": "CLOSED",
+      "illustration": "Illustrated storefront. The door sign shows the real opening hours.",
+      "photoNote": "Our storefront."
+    }
   },
   "menu": {
     "eyebrow": "The menu",
@@ -372,7 +383,8 @@
     "directions": "Get directions",
     "map": "Location map",
     "mapPending": "The map location has not been set up yet.",
-    "timezone": "Times shown in the {{tz}} time zone."
+    "timezone": "Times shown in the {{tz}} time zone.",
+    "mapIllustration": "Illustrative map. The real map with the exact location is below."
   },
   "promos": {
     "eyebrow": "Offers",
@@ -569,7 +581,26 @@
       "top": "Best sellers",
       "bottom": "Least sold",
       "abcHelp": "ABC classification: A = products generating 80% of sales; B = next 15%; C = last 5%.",
-      "prevToDate": "Same stretch of the previous period ({{from}} → {{to}}, end exclusive)"
+      "prevToDate": "Same stretch of the previous period ({{from}} → {{to}}, end exclusive)",
+      "insights": {
+        "title": "Automatic recommendations",
+        "subtitle": "Rules applied to your own data for this period. No AI or external services: each suggestion explains its source.",
+        "none": "No alerts for this period. Suggestions will appear as orders grow.",
+        "low_stock": "{{count}} supply item(s) below minimum ({{names}}). Restock before the next peak hour.",
+        "stock_runout": "\"{{name}}\" will last about {{days}} day(s) at the current usage rate.",
+        "cancel_rate": "{{pct}}% of orders were cancelled. Check the reasons in Orders (stock, delays, payment).",
+        "discount_heavy": "Discounts are {{pct}}% of gross sales. Check that promotions are still profitable.",
+        "revenue_drop": "Sales fell {{pct}}% versus the previous comparable period.",
+        "revenue_up": "Sales rose {{pct}}% versus the previous comparable period.",
+        "peak_hour": "Peak hour: {{hour}}:00 ({{share}}% of orders). Add staff and prep supplies beforehand.",
+        "slow_weekday": "{{day}} is the slowest day (less than half of {{bestDay}}). A good candidate for a promotion.",
+        "concentration": "\"{{name}}\" makes up {{pct}}% of revenue. Secure its stock and consider promoting other items.",
+        "unsold": "{{count}} active product(s) with no sales this period ({{names}}). Review price, photo or visibility.",
+        "missing_costs": "Only {{pct}}% of sales have a recorded cost. Add recipes or costs to see your margin.",
+        "anomaly_low": "Sales on {{date}} were unusually low. Was there an outage, a holiday or an issue?",
+        "aiTitle": "What about AI?",
+        "aiText": "These rules cover what an AI assistant would tell you at your current volume, at no cost and without sending data to third parties. See docs/IA-Y-COSTOS.md if you later want a natural-language summary."
+      }
     },
     "orders": {
       "subtitle": "Refreshes automatically every 30 seconds.",
@@ -906,7 +937,10 @@
       "discard": "Discard",
       "publish": "Publish changes",
       "saved_one": "{{count}} change published.",
-      "saved_other": "{{count}} changes published."
+      "saved_other": "{{count}} changes published.",
+      "streetScene": "\"From the street\" cover (façade and Location button)",
+      "facade": "Real façade photo",
+      "facadeHint": "Empty = the brand's illustrated façade. Upload a photo of the shop front in Images (type \"Premises\") and choose it here."
     },
     "currencies": {
       "subtitle": "Base currency: {{base}}. Official prices and charges are always in the base currency.",

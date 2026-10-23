@@ -6,7 +6,7 @@ const { query, pool } = require('../config/db');
 const { badRequest } = require('../utils/errors');
 
 const url = z.string().trim().max(500).refine(
-  (v) => v === '' || /^https:\/\/[^\s"'<>]+$/.test(v) || /^\/uploads\/public\/[\w./-]+$/.test(v) || /^\/media\/[\w.-]+$/.test(v),
+  (v) => v === '' || /^https:\/\/[^\s"'<>]+$/.test(v) || /^\/uploads\/public\/[\w./-]+$/.test(v) || /^\/media\/(?:[\w-]+\/)*[\w-]+\.[a-z0-9]+$/i.test(v),
   'Debe ser una URL https:// o un archivo subido'
 );
 const text = (max) => z.string().trim().max(max);
@@ -27,6 +27,8 @@ const DEFINITIONS = {
   logo_url: url,
   favicon_url: url,
   hero_video_url: url,
+  facade_image_url: url,
+  street_scene_enabled: bool,
   hero_poster_url: url,
   hero_is_illustrative: bool,
   story_video_url: url,
@@ -76,6 +78,9 @@ const DEFAULTS = {
   logo_url: '',
   favicon_url: '',
   hero_video_url: '/media/cafe-interior-720.mp4',
+  // Fachada: vacío = ilustración original de la marca; con foto real del local, se muestra la foto
+  facade_image_url: '',
+  street_scene_enabled: 'true',
   hero_poster_url: '/media/cafe-interior-poster.webp',
   hero_is_illustrative: 'true',
   story_video_url: '/media/cafe-fireplace-720.mp4',

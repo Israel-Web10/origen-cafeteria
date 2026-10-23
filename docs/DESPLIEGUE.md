@@ -96,6 +96,18 @@ sudo -u origen crontab -e
 Alternativa con contenedores: `deploy/docker-compose.yml` (PostgreSQL + API; el puerto de la base no se publica).
 *No se pudo probar `docker build` en este entorno porque el servicio de Docker no estaba iniciado.*
 
+### Rendimiento y límites (VPS)
+
+```bash
+# Cabeceras de seguridad compartidas por todas las rutas de Nginx
+sudo cp deploy/nginx/security-headers.conf /etc/nginx/snippets/origen-security-headers.conf
+# En backend/.env: un proceso por núcleo (ver docs/ESCALABILIDAD.md)
+#   WEB_CONCURRENCY=2   DB_POOL_MAX=10   PUBLIC_CACHE_TTL_MS=10000
+sudo nginx -t && sudo systemctl reload nginx && sudo systemctl restart origen-api
+```
+
+Nginx limita por IP (429 al exceder); el servicio arranca con `src/cluster.js`.
+
 ## 5. Despliegue gestionado (opción B)
 
 1. **Base de datos** (Render Postgres): crea la base, ejecuta `database/roles.sql` adaptado o usa el usuario

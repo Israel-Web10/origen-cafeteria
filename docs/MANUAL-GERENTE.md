@@ -60,8 +60,21 @@ activa "Mostrar precios aproximados". Actualízalo cuando cambie; cada pedido gu
   comparación se hace con el mismo tramo del periodo anterior. La **demanda estimada** solo aparece con al
   menos 28 días de ventas y es una estimación, no una certeza. **ABC**: A = productos que suman el 80 % de
   las ventas.
+- **Recomendaciones automáticas** (arriba del panel): avisos de stock, cancelaciones, descuentos, hora
+  pico, día flojo, productos sin ventas, etc. Salen de reglas sobre tus propios datos (sin IA ni servicios
+  externos) y no aparecen hasta que haya al menos 10 pedidos en el periodo.
 - **Reportes**: elige tipo, periodo, filtros e idioma y descarga **PDF** o **Excel**. Incluyen logotipo,
   periodo, filtros, usuario, moneda, totales y gráfico cuando corresponde.
+
+## Portada «desde la calle»
+
+La web abre con la fachada del local. **Entrar** lleva al interior y **Ubicación** convierte la escena en
+un mapa que termina en *Visítanos*. En *Configuración → Marca*:
+
+- **Foto real de la fachada**: sube en *Imágenes* una foto del frente del local (tipo «Instalaciones») y
+  elígela; mientras esté vacío se muestra la fachada ilustrada de la marca.
+- **Portada «desde la calle»**: desactívala si prefieres abrir directamente con el interior.
+- La dirección, las coordenadas y el horario de *Visítanos* se cargan en *Configuración → Negocio*.
 
 ## Seguridad básica
 

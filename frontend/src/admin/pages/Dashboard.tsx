@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { AnalyticsSummary } from '../../types';
+import type { AnalyticsSummary, Insight } from '../../types';
 import * as admin from '../../services/adminService';
 import type { PeriodParams } from '../../services/adminService';
 import { downloadFile, errorMessage } from '../../services/api';
@@ -73,6 +73,8 @@ export function Dashboard() {
               hint={k.margin.cents === null ? t('admin.dash.marginMissing', { pct: Math.round(k.margin.coverage * 100) }) : t('admin.dash.marginEstimated')}
             />
           </div>
+
+          <Insights items={data.insights} days={days} />
 
           <div className="grid xl:grid-cols-3 gap-6 mb-6">
             <section className="card p-5 xl:col-span-2">
@@ -190,6 +192,43 @@ function ProductTable({ title, rows, money }: { title: string; rows: AnalyticsSu
           ))}
         </tbody>
       </table>
+    </section>
+  );
+}
+
+const INSIGHT_TONE: Record<Insight['severity'], string> = {
+  warn: 'border-l-rose bg-rose/5',
+  info: 'border-l-gold bg-gold/5',
+  good: 'border-l-olive bg-olive/5',
+};
+const INSIGHT_ICON: Record<Insight['severity'], string> = { warn: '⚠', info: '💡', good: '▲' };
+
+/** Recomendaciones por reglas (servidor). Sin IA externa: costo cero y explicables. */
+function Insights({ items, days }: { items: Insight[]; days: string[] }) {
+  const { t } = useTranslation();
+  const text = (i: Insight) => {
+    const p: Record<string, string | number> = { ...i.params };
+    if (typeof p.dow === 'number') p.day = days[p.dow];
+    if (typeof p.bestDow === 'number') p.bestDay = days[p.bestDow];
+    return t(`admin.dash.insights.${i.code}`, p);
+  };
+  return (
+    <section className="card p-5 mb-6" aria-labelledby="insights-title">
+      <h2 id="insights-title" className="text-xl">{t('admin.dash.insights.title')}</h2>
+      <p className="text-xs text-charcoal/60 mb-4">{t('admin.dash.insights.subtitle')}</p>
+      {items.length ? (
+        <ul className="grid md:grid-cols-2 gap-3">
+          {items.map((i, n) => (
+            <li key={`${i.code}-${n}`} className={`rounded-lg border-l-4 p-3 text-sm ${INSIGHT_TONE[i.severity]}`}>
+              <span aria-hidden className="mr-1">{INSIGHT_ICON[i.severity]}</span>{text(i)}
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-sm text-charcoal/60">{t('admin.dash.insights.none')}</p>}
+      <details className="mt-4 text-xs text-charcoal/60">
+        <summary className="cursor-pointer">{t('admin.dash.insights.aiTitle')}</summary>
+        <p className="mt-1">{t('admin.dash.insights.aiText')}</p>
+      </details>
     </section>
   );
 }

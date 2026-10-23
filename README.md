@@ -80,5 +80,8 @@ Guía paso a paso para personas no técnicas: **[docs/INSTALACION.md](docs/INSTA
 | [docs/LEGAL.md](docs/LEGAL.md) | Privacidad, cookies, consumo y facturación: qué revisar con profesionales |
 | [docs/RECURSOS-Y-LICENCIAS.md](docs/RECURSOS-Y-LICENCIAS.md) | Imágenes, videos y dependencias: origen y licencias |
 | [docs/MANUAL-GERENTE.md](docs/MANUAL-GERENTE.md) | Uso diario del panel |
+| [docs/ESCALABILIDAD.md](docs/ESCALABILIDAD.md) | Caché, multiproceso, límites en Nginx y prueba con 1000 conexiones |
+| [docs/IA-Y-COSTOS.md](docs/IA-Y-COSTOS.md) | Claves seguras, cómo evitar facturas por APIs y si conviene IA en el panel |
+| [CHANGELOG.md](CHANGELOG.md) | Versiones y cambios (versionado semántico, API `/api/v1`) |
 | [docs/INFORME-FINAL.md](docs/INFORME-FINAL.md) | Informe por fases y lista de producción |
 | [docs/investigacion/](docs/investigacion/) | Precios y condiciones verificados (hosting, dominio, pagos, tipo de cambio, legal) |

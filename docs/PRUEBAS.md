@@ -8,7 +8,7 @@ ejecutando los comandos indicados; lo que no se pudo ejecutar figura al final.
 
 | Área | Comando / método | Resultado |
 |---|---|---|
-| Backend: unitarias + integración HTTP | `cd backend && npm test` | **32/32 OK** |
+| Backend: unitarias + integración HTTP | `cd backend && npm test` | **41/41 OK** (2026-10-23) |
 | Backend: lint | `npm run lint` | **0 problemas** |
 | Frontend: traducciones | `npm run check:i18n` | **OK** — 743 claves usadas, 815 por idioma, es/en/fr idénticos |
 | Frontend: TypeScript | `npm run typecheck` | **0 errores** |
@@ -18,6 +18,8 @@ ejecutando los comandos indicados; lo que no se pudo ejecutar figura al final.
 | Panel en navegador | login gerente, dashboard, cobro en efectivo, reportes | **OK** |
 | Responsive (375 px) | 13 rutas públicas y del panel | **Sin desbordamiento horizontal** |
 | Carga y concurrencia | autocannon (ver abajo) | **Consistente, sin stock negativo** |
+| 1000 conexiones simultáneas | autocannon `-c 1000` (2026-10-23) | **0 errores**; 6.636 req/s con 4 procesos (ver [ESCALABILIDAD.md](ESCALABILIDAD.md)) |
+| Secretos en el repositorio | `node scripts/check-secrets.mjs --all` | **Sin secretos** |
 | Respaldo y restauración | `backup.ps1` → `restore.ps1` | **Datos idénticos** |
 | Roles de mínimo privilegio | `database/roles.sql` + migraciones | **Permisos correctos** |
 | Dependencias | `npm audit` | Ver [SEGURIDAD.md](SEGURIDAD.md) |
@@ -54,6 +56,10 @@ el esquema se borra y se recrea con las migraciones reales en cada ejecución.
 | analítica y reportes | KPIs reales; proyección **no disponible** sin historial suficiente; PDF válido (`%PDF`) y 7 tipos de Excel válidos (`PK`); cliente → 403 |
 | privacidad | Exportación de datos propia; eliminación anonimiza pedidos y revoca la sesión |
 | unitarias | Dinero sin errores de coma flotante; conversión exacta con redondeo; límites de periodos (semana ISO, trimestre, semestre, bisiesto); detección de imágenes por firma; agrupación de líneas; media móvil y anomalías |
+| **inyección SQL** | Cargas maliciosas en búsqueda, categoría, login, seguimiento, slug, orden y filtros del personal → se tratan como texto (0 resultados, 400 o 401), la tabla `orders` sigue existiendo y no se crean usuarios |
+| versionado | `/api/v1` y `/api` devuelven lo mismo; cabecera `API-Version`; `/version`; 404 dentro de v1 |
+| micro-caché (`cache.test.js`) | HIT en lecturas repetidas; nunca cachea peticiones autenticadas ni errores; `clear()` y TTL 0; tamaño acotado; **50 peticiones simultáneas → 1 sola consulta**; una lectura iniciada antes de una edición no guarda datos viejos |
+| recomendaciones | Reglas del panel: detecta stock bajo, caída de ventas, hora pico, día flojo, concentración y productos sin ventas; **no concluye nada con menos de 10 pedidos** |
 | almacenamiento S3 | Con cliente simulado: rutas `public/`/`private/`, URL pública, lectura, borrado, rechazo de path traversal y de URLs ajenas |
 
 ## Prueba de carga (autocannon 7)
@@ -83,6 +89,23 @@ npx autocannon -c 50 -d 20 https://api.tu-dominio.com/api/products
 (en producción los límites por IP devolverán 429: ejecutar desde varias IP o con límites ajustados temporalmente
 en un entorno de pruebas, nunca en producción con clientes).
 
+### 1000 conexiones simultáneas (2026-10-23)
+
+Mezcla de una visita real (configuración, categorías, carta, destacados, promociones, populares, cookies) contra `/api/v1`,
+30 s, misma máquina, sin Nginx ni límites por IP:
+
+| Configuración | Peticiones/s | p50 | p99 | Errores |
+|---|---|---|---|---|
+| Sin caché, 1 proceso | 987 | 941 ms | 1.563 ms | 0 |
+| Primera versión de la caché, 1 proceso | 1.620 | 134 ms | 5.063 ms | **440 × 500** |
+| Caché sin estampida, 1 proceso | 3.054 | 318 ms | 1.294 ms | 0 |
+| Caché sin estampida, 4 procesos | 6.636 | 6 ms | 466 ms | 0 |
+
+La primera versión de la caché falló: al arrancar, 1000 peticiones iguales consultaban la BD a la vez y
+agotaban la espera del pool ("timeout exceeded when trying to connect"). Se corrigió agrupando las peticiones
+concurrentes (una sola consulta por URL) y sirviendo la copia anterior mientras se refresca; la segunda
+medición no tuvo errores.
+
 ## Pruebas manuales en navegador
 
 - Portada: escena con video, capas y etiqueta "imagen ilustrativa"; elección de cookies guardada y registrada.
@@ -93,6 +116,7 @@ en un entorno de pruebas, nunca en producción con clientes).
 - Comparación de periodos corregida tras la prueba: el mes en curso se compara con el mismo tramo del mes anterior.
 - PDF revisados visualmente (ventas en francés, productos con ABC, movimientos en inglés): se corrigieron caracteres no soportados, una página en blanco y celdas que se superponían.
 - Francés en carta y visita, incluidas categorías traducidas desde la base.
+- (2026-10-23) Portada desde la calle: «Entrar» muestra el interior y se recuerda en la sesión; «Ubicación» transforma la escena en mapa y abre *Visítanos* (titular "Visítanos" comprobado). Carta con fotos y *Visítanos* con mapa ilustrado revisados en capturas de 1440 px; a 375 px sin desbordamiento.
 
 ## No ejecutado (y cómo hacerlo)
 

@@ -243,6 +243,69 @@ async function inventoryHealth() {
   });
 }
 
+/**
+ * Recomendaciones automáticas a partir de los propios datos (reglas, sin IA ni
+ * servicios externos: costo cero y resultados explicables). Cada regla exige un
+ * mínimo de datos para no sacar conclusiones de muestras pequeñas. Devuelve
+ * códigos + parámetros; el texto lo traduce el panel (es/en/fr).
+ */
+const MIN_ORDERS = 10;
+function insights(s) {
+  const out = [];
+  const k = s.kpis;
+  const add = (code, severity, params = {}) => out.push({ code, severity, params });
+  if (k.orders === 0) return out;
+
+  // Inventario: lo urgente primero
+  const low = s.inventory.filter((i) => i.low);
+  if (low.length) add('low_stock', 'warn', { count: low.length, names: low.slice(0, 3).map((i) => i.name).join(', ') });
+  const runout = s.inventory.filter((i) => !i.low && i.coverage_days !== null && i.coverage_days <= 3);
+  for (const i of runout.slice(0, 3)) add('stock_runout', 'warn', { name: i.name, days: i.coverage_days });
+
+  // Cancelaciones y descuentos
+  const totalWithCancelled = k.orders + k.cancelled.orders;
+  const cancelRate = k.cancelled.orders / totalWithCancelled;
+  if (totalWithCancelled >= MIN_ORDERS && cancelRate >= 0.1) add('cancel_rate', 'warn', { pct: Math.round(cancelRate * 100) });
+  const gross = k.revenue_cents + k.discounts_cents;
+  if (gross > 0 && k.discounts_cents / gross >= 0.2) add('discount_heavy', 'warn', { pct: Math.round((k.discounts_cents / gross) * 100) });
+
+  // Tendencia frente al periodo anterior comparable
+  const prev = s.comparison.previous;
+  if (prev.kpis.orders >= MIN_ORDERS && prev.revenue_change !== null) {
+    const pct = Math.round(prev.revenue_change * 100);
+    if (pct <= -15) add('revenue_drop', 'warn', { pct: Math.abs(pct) });
+    else if (pct >= 15) add('revenue_up', 'good', { pct });
+  }
+
+  if (k.orders >= MIN_ORDERS) {
+    // Hora pico: reforzar personal y preparar insumos antes
+    const peak = s.time.hours.reduce((a, b) => (b.orders > a.orders ? b : a));
+    if (peak.orders > 0) add('peak_hour', 'info', { hour: peak.hour, share: Math.round((peak.orders / k.orders) * 100) });
+    // Día más flojo con ventas: candidato a promoción
+    const active = s.time.weekdays.filter((d) => d.orders > 0);
+    if (active.length >= 4) {
+      const best = active.reduce((a, b) => (b.revenue_cents > a.revenue_cents ? b : a));
+      const worst = active.reduce((a, b) => (b.revenue_cents < a.revenue_cents ? b : a));
+      if (worst.revenue_cents < best.revenue_cents * 0.5) add('slow_weekday', 'info', { dow: worst.dow, bestDow: best.dow });
+    }
+    // Dependencia de un solo producto
+    const top = s.products.top[0];
+    if (top && top.share >= 0.4) add('concentration', 'info', { name: top.name, pct: Math.round(top.share * 100) });
+    // Productos activos sin ventas en el periodo
+    const unsold = s.products.bottom.filter((p) => p.units === 0);
+    if (unsold.length) add('unsold', 'info', { count: unsold.length, names: unsold.slice(0, 3).map((p) => p.name).join(', ') });
+  }
+
+  // Calidad de datos: sin costos no hay margen
+  if (k.margin.cents === null && k.revenue_cents > 0) add('missing_costs', 'info', { pct: Math.round(k.margin.coverage * 100) });
+  // Días atípicos recientes
+  const recent = s.anomalies.filter((a) => a.z < 0).slice(-1)[0];
+  if (recent) add('anomaly_low', 'info', { date: recent.date });
+
+  const rank = { warn: 0, info: 1, good: 2 };
+  return out.sort((a, b) => rank[a.severity] - rank[b.severity]);
+}
+
 async function summary(params) {
   const settings = await settingsService.getAll();
   const tz = settings.timezone;
@@ -265,7 +328,7 @@ async function summary(params) {
     one(`SELECT COUNT(DISTINCT (created_at AT TIME ZONE $1)::date)::int AS n FROM orders WHERE status <> 'cancelado'`, [tz]),
   ]);
   const change = (a, b) => (b ? (a - b) / b : null);
-  return {
+  const result = {
     range,
     filters: f,
     currency: (await one('SELECT code FROM currencies WHERE is_base')).code,
@@ -289,6 +352,8 @@ async function summary(params) {
     inventory,
     data_quality: { days_with_sales_total: totalDays.n },
   };
+  result.insights = insights(result);
+  return result;
 }
 
-module.exports = { summary, dailySeries, kpis, byCategory, productRanking, byPaymentMethod, inventoryHealth, movingAverage, anomalies };
+module.exports = { summary, insights, dailySeries, kpis, byCategory, productRanking, byPaymentMethod, inventoryHealth, movingAverage, anomalies };

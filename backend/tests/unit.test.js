@@ -5,7 +5,7 @@ const money = require('../src/utils/money');
 const periods = require('../src/services/periods');
 const { sniffImage, imageSize } = require('../src/services/storageService');
 const { mergeItems } = require('../src/services/orderService');
-const { movingAverage, anomalies } = require('../src/services/analyticsService');
+const { movingAverage, anomalies, insights } = require('../src/services/analyticsService');
 
 test('toCents convierte sin errores de punto flotante', () => {
   assert.equal(money.toCents('0.1'), 10);
@@ -65,4 +65,28 @@ test('media móvil y anomalías', () => {
   const an = anomalies(series);
   assert.equal(an.length, 1);
   assert.equal(an[0].date, 'd25');
+});
+
+test('recomendaciones: reglas explicables y sin conclusiones con pocos datos', () => {
+  const kpis = (o) => ({ revenue_cents: 100000, discounts_cents: 0, orders: 40, cancelled: { orders: 0 }, margin: { cents: 1, coverage: 1 }, ...o });
+  const base = {
+    kpis: kpis(),
+    comparison: { previous: { kpis: kpis({ orders: 30 }), revenue_change: -0.25 } },
+    time: {
+      hours: Array.from({ length: 24 }, (_, h) => ({ hour: h, orders: h === 9 ? 20 : 1 })),
+      weekdays: [1, 2, 3, 4, 5].map((dow) => ({ dow, orders: 5, revenue_cents: dow === 2 ? 1000 : 20000 })),
+    },
+    products: { top: [{ name: 'Espresso', share: 0.5 }], bottom: [{ name: 'Brownie', units: 0 }] },
+    inventory: [{ name: 'Leche', low: true, coverage_days: 1 }, { name: 'Café', low: false, coverage_days: 2 }],
+    anomalies: [],
+  };
+  const codes = insights(base).map((i) => i.code);
+  for (const c of ['low_stock', 'stock_runout', 'revenue_drop', 'peak_hour', 'slow_weekday', 'concentration', 'unsold']) assert.ok(codes.includes(c), c);
+  assert.equal(insights(base)[0].severity, 'warn');
+  assert.equal(insights(base).find((i) => i.code === 'peak_hour').params.hour, 9);
+  // Con 3 pedidos no se infieren tendencias ni horas pico
+  const few = insights({ ...base, kpis: kpis({ orders: 3 }), comparison: { previous: { kpis: kpis({ orders: 2 }), revenue_change: -0.9 } }, inventory: [] });
+  assert.deepEqual(few.map((i) => i.code), []);
+  // Sin ventas: nada
+  assert.deepEqual(insights({ ...base, kpis: kpis({ orders: 0 }) }), []);
 });

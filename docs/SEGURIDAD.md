@@ -30,23 +30,24 @@ cifrado del disco del proveedor y respaldos con permisos restringidos.
 | 5 | Subida de archivos maliciosos | Tipo por firma binaria (JPG/PNG/WEBP), sin SVG/HTML; nombre aleatorio; dimensiones máximas; 5 MB; CSP `sandbox` y `nosniff` al servirlos | `storageService`, `app.js` | Bajo |
 | 6 | Comprobantes de pago expuestos | Almacenamiento privado; solo personal autenticado vía endpoint | `paymentRoutes /:id/proof` | Bajo |
 | 7 | Confirmación falsa de pagos | Ningún pago se confirma automáticamente; verificación por personal con registro de quién/cuándo; tarjeta solo simulador bloqueado en producción | `paymentService.review`, `env.js` | **Medio**: un comprobante falsificado puede engañar a una persona → el panel advierte contrastar con el banco |
-| 8 | Fuerza bruta / abuso | Bloqueo de cuenta tras 5 fallos (15 min); rate limiting por IP en auth, pedidos, seguimiento, subidas y reportes | `userService.login`, `rateLimits.js` | Medio: los límites son por instancia y en memoria |
+| 8 | Fuerza bruta / abuso / saturación | Bloqueo de cuenta tras 5 fallos (15 min); límites por IP en auth, pedidos, seguimiento, subidas y reportes; **tope global en Nginx** (`limit_req`/`limit_conn`) y micro-caché sin estampida (ver [ESCALABILIDAD.md](ESCALABILIDAD.md)) | `userService.login`, `rateLimits.js`, `deploy/nginx/origen.conf` | Bajo con Nginx; los límites de Node son por proceso |
 | 9 | Escalada de privilegios | Roles verificados en cada endpoint; mass assignment imposible (zod `.strict()`); no se puede cambiar el propio rol; siempre queda un admin | `auth.js`, `schemas.js`, `userService.adminUpdate` | Bajo |
 | 10 | Sesiones robadas | Expiración 12 h; revocación al cambiar contraseña/rol/estado; "cerrar todas las sesiones" | `auth.js`, `userService` | Medio: el token vive en `localStorage` (riesgo si hubiera XSS); mitigado por CSP estricta y React (escapa por defecto). Alternativa futura: cookie `HttpOnly` + protección CSRF |
 | 11 | XSS | React escapa salida; el Markdown editable no admite HTML y solo enlaces `https://` o rutas internas sin `//` ni `\`; CSP sin `unsafe-inline` en scripts | `Markdown.tsx`, `_headers`, Nginx | Bajo |
 | 12 | CSRF | No aplica: la autenticación usa cabecera `Authorization`, no cookies | — | — |
-| 13 | SQL injection | 100 % consultas parametrizadas; nombres de tabla dinámicos solo desde lista blanca | modelos/servicios, `slug.js` | Bajo |
+| 13 | SQL injection | 100 % consultas parametrizadas; nombres de tabla y ordenaciones dinámicas solo desde listas blancas; entradas validadas con zod. **Prueba automatizada** con cargas típicas (`' OR '1'='1`, `; DROP TABLE`, `UNION SELECT`…) en búsqueda, categoría, login, seguimiento, slug y orden | servicios, `slug.js`, `tests/api.test.js` | Bajo (probado) |
 | 14 | SSRF | El servidor no descarga URLs proporcionadas por usuarios (no hay API externa de tipo de cambio) | — | — |
 | 15 | Path traversal | Claves de archivo con formato estricto y `path.resolve` acotado | `storageService.localPath` | Bajo (probado) |
 | 16 | Command injection | El backend no ejecuta comandos del sistema | — | — |
 | 17 | CORS | Lista blanca `CLIENT_URL`; métodos y cabeceras limitados | `app.js` | Bajo |
-| 18 | Cabeceras | Helmet (CSP `default-src 'none'` en la API, HSTS, frameguard, no `x-powered-by`); CSP del frontend en `_headers`/Nginx | `app.js`, `deploy/` | Bajo |
+| 18 | Cabeceras | Helmet (CSP `default-src 'none'` en la API, HSTS, frameguard, no `x-powered-by`); CSP del frontend en `_headers`/Nginx. **Corregido 2026-10-23:** en Nginx los `add_header` de `/assets/` y `/` anulaban los de seguridad; ahora todos incluyen `security-headers.conf` | `app.js`, `deploy/` | Bajo |
 | 19 | Errores con información interna | Respuesta genérica en 500; detalles solo en logs del servidor | `errorHandler.js` | Bajo |
 | 20 | Logs con datos sensibles | Sin cuerpos, contraseñas, tokens ni query strings | `app.js`, `logger.js`, `auditService.scrub` | Bajo |
 | 21 | Configuración insegura | Validación al arrancar; producción rechaza `localhost` en CORS y el simulador de tarjeta | `env.js` | Bajo |
 | 22 | Base de datos expuesta | Roles de mínimo privilegio; puerto no publicado en compose/VPS; `statement_timeout` | `database/roles.sql`, `deploy/` | Depende del despliegue |
 | 23 | Pérdida de datos | Respaldos verificados con SHA-256 y prueba de restauración; movimientos e historial inmutables | `scripts/backup.*` | Depende de que se programen y se copien fuera del servidor |
 | 24 | Dependencias vulnerables | Actualizadas (Express, multer, morgan, React Router 7, Vite 6); `npm audit` revisado | `package.json` | Ver abajo |
+| 25 | Claves en el repositorio / facturas por uso de APIs | Claves solo en `.env` del servidor (ignorado por Git); escáner `scripts/check-secrets.mjs` + gancho `pre-commit` que bloquea el commit; ninguna API de pago integrada (ver [IA-Y-COSTOS.md](IA-Y-COSTOS.md)) | `.githooks/`, `scripts/` | Bajo. Activar el gancho en cada equipo: `git config core.hooksPath .githooks` |
 
 ## Dependencias (npm audit, 2026-10-20)
 

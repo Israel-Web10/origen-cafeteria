@@ -68,7 +68,18 @@
     "storyTitle": "Une histoire qui commence par le grain",
     "storyText": "Nous sélectionnons avec soin café et cacao, les préparons à la commande et les servons sans hâte.",
     "galleryTitle": "Notre espace",
-    "visitTitle": "Nous vous attendons"
+    "visitTitle": "Nous vous attendons",
+    "street": {
+      "label": "Rue devant le café",
+      "alt": "Illustration de la façade de {{name}} avec l'Illimani en arrière-plan",
+      "title": "Bienvenue chez {{name}}. Entrez, votre café est prêt.",
+      "enter": "Entrer dans le café",
+      "locate": "Adresse",
+      "open": "OUVERT",
+      "closed": "FERMÉ",
+      "illustration": "Façade illustrée. Le panneau de la porte indique les horaires réels.",
+      "photoNote": "Notre façade."
+    }
   },
   "menu": {
     "eyebrow": "La carte",
@@ -372,7 +383,8 @@
     "directions": "Itinéraire",
     "map": "Carte de localisation",
     "mapPending": "L'emplacement sur la carte n'est pas encore configuré.",
-    "timezone": "Horaires dans le fuseau {{tz}}."
+    "timezone": "Horaires dans le fuseau {{tz}}.",
+    "mapIllustration": "Carte illustrative. La carte réelle avec l'emplacement exact se trouve plus bas."
   },
   "promos": {
     "eyebrow": "Offres",
@@ -569,7 +581,26 @@
       "top": "Meilleures ventes",
       "bottom": "Moins vendus",
       "abcHelp": "Classement ABC : A = produits générant 80 % des ventes ; B = 15 % suivants ; C = 5 % restants.",
-      "prevToDate": "Même tranche de la période précédente ({{from}} → {{to}}, fin exclue)"
+      "prevToDate": "Même tranche de la période précédente ({{from}} → {{to}}, fin exclue)",
+      "insights": {
+        "title": "Recommandations automatiques",
+        "subtitle": "Règles appliquées à vos propres données de la période. Sans IA ni service externe : chaque suggestion explique sa source.",
+        "none": "Aucune alerte pour cette période. Des suggestions apparaîtront avec plus de commandes.",
+        "low_stock": "{{count}} ingrédient(s) sous le minimum ({{names}}). Réapprovisionnez avant le prochain pic.",
+        "stock_runout": "« {{name}} » durera environ {{days}} jour(s) au rythme actuel.",
+        "cancel_rate": "{{pct}} % des commandes ont été annulées. Vérifiez les motifs dans Commandes (stock, délais, paiement).",
+        "discount_heavy": "Les remises représentent {{pct}} % des ventes brutes. Vérifiez la rentabilité des promotions.",
+        "revenue_drop": "Les ventes ont baissé de {{pct}} % par rapport à la période comparable précédente.",
+        "revenue_up": "Les ventes ont augmenté de {{pct}} % par rapport à la période comparable précédente.",
+        "peak_hour": "Heure de pointe : {{hour}} h ({{share}} % des commandes). Renforcez l’équipe et préparez les ingrédients avant.",
+        "slow_weekday": "{{day}} est le jour le plus calme (moins de la moitié de {{bestDay}}). Bon candidat pour une promotion.",
+        "concentration": "« {{name}} » représente {{pct}} % du chiffre d’affaires. Sécurisez son stock et mettez d’autres produits en avant.",
+        "unsold": "{{count}} produit(s) actif(s) sans vente sur la période ({{names}}). Revoyez prix, photo ou visibilité.",
+        "missing_costs": "Seuls {{pct}} % des ventes ont un coût enregistré. Ajoutez recettes ou coûts pour voir la marge.",
+        "anomaly_low": "Le {{date}}, les ventes ont été anormalement basses. Coupure, jour férié ou incident ?",
+        "aiTitle": "Et l’IA ?",
+        "aiText": "Ces règles couvrent ce qu’un assistant IA vous dirait à votre volume actuel, sans coût ni envoi de données à des tiers. Voir docs/IA-Y-COSTOS.md si vous souhaitez plus tard un résumé en langage naturel."
+      }
     },
     "orders": {
       "subtitle": "Mise à jour automatique toutes les 30 secondes.",
@@ -906,7 +937,10 @@
       "discard": "Abandonner",
       "publish": "Publier les modifications",
       "saved_one": "{{count}} modification publiée.",
-      "saved_other": "{{count}} modifications publiées."
+      "saved_other": "{{count}} modifications publiées.",
+      "streetScene": "Couverture « depuis la rue » (façade et bouton Localisation)",
+      "facade": "Vraie photo de la façade",
+      "facadeHint": "Vide = façade illustrée de la marque. Importez la photo de la devanture dans Images (type « Locaux ») puis choisissez-la ici."
     },
     "currencies": {
       "subtitle": "Devise de base : {{base}}. Les prix officiels et les paiements sont toujours dans la devise de base.",

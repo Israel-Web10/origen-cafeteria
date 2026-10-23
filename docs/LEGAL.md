@@ -34,3 +34,26 @@
 Si el contador confirma la obligación, lo realista es (a) emitir la factura en el Portal Web del SIN de forma
 manual con el número de pedido, o (b) integrar un **proveedor certificado** de facturación. Desarrollar una
 facturación propia exige certificación del SIN.
+
+## Visitantes de otros países (Bolivia, Francia, Canadá)
+
+**Cookies: no hace falta una versión por país.** El banner ya sigue el criterio más exigente, el europeo
+(la CNIL en Francia y la ley 25 de Quebec en Canadá van en la misma línea):
+
+- solo usa almacenamiento necesario;
+- no activa nada opcional sin consentimiento previo;
+- «Solo necesarias» está al mismo nivel que «Aceptar todas»;
+- la elección se puede cambiar y se registra.
+
+Ese criterio también cumple las normas menos estrictas (Bolivia, resto de Canadá). Por eso **no se cambió
+el código**. Habrá que revisarlo si en el futuro se añade analítica o publicidad: `hasConsent()` ya permite
+condicionarlas.
+
+**Impuestos: no dependen del país del visitante.** ORIGEN vende y entrega en Bolivia, así que se aplican
+los impuestos bolivianos del vendedor (el precio publicado incluye IVA si `prices_include_tax` está activo),
+aunque quien compre sea un turista francés o canadiense.
+
+- **TVA francesa o GST/HST canadiense:** solo entrarían si el negocio vendiera o enviara a esos países, lo que hoy no ocurre.
+- **Precio en USD o EUR:** el sistema lo muestra solo como referencia, con el tipo de cambio que carga el gerente; se cobra en bolivianos.
+- **A confirmar con un contador:** la obligación de factura del NIT (ver arriba).
+- **Si algún día hubiera ventas o envíos a otros países:** habría que revisar con un abogado (RGPD, LPRPDE/ley 25) y con un contador.

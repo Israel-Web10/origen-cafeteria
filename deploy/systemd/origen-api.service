@@ -13,7 +13,7 @@ Group=origen
 WorkingDirectory=/opt/origen/backend
 EnvironmentFile=/opt/origen/backend/.env
 ExecStartPre=/usr/bin/node scripts/migrate.js
-ExecStart=/usr/bin/node src/server.js
+ExecStart=/usr/bin/node src/cluster.js
 Restart=on-failure
 RestartSec=5
 # Endurecimiento

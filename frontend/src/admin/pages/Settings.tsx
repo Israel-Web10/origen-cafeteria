@@ -163,6 +163,8 @@ function BrandEditor({ draft, set }: { draft: Settings; set: (k: string) => (v: 
         </Field>
         <Toggle checked={draft.hero_is_illustrative === 'true'} onChange={(v) => set('hero_is_illustrative')(String(v))} label={t('admin.settings.heroIllustrative')} />
         <Field label={t('admin.settings.storyPoster')}>{choose('story_poster_url', ['hero', 'gallery', 'facility'])}</Field>
+        <Toggle checked={draft.street_scene_enabled !== 'false'} onChange={(v) => set('street_scene_enabled')(String(v))} label={t('admin.settings.streetScene')} />
+        <Field label={t('admin.settings.facade')} hint={t('admin.settings.facadeHint')}>{choose('facade_image_url', ['facility', 'hero', 'gallery'])}</Field>
       </div>
       <div className="card p-6">
         <span className="label">{t('admin.settings.palette')}</span>

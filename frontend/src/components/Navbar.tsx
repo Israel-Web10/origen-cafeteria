@@ -71,7 +71,7 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
             <LanguageSwitcher light={transparent} />
             <CurrencySwitcher light={transparent} />
           </div>
-          <Link to="/seguimiento" className={`hidden xl:inline-flex text-xs font-semibold px-3 py-2 rounded-full ${transparent ? 'text-cream/85 hover:bg-cream/10' : 'text-espresso/70 hover:bg-espresso/5'}`}>
+          <Link to="/seguimiento" className={`hidden xl:inline-flex whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-full ${transparent ? 'text-cream/85 hover:bg-cream/10' : 'text-espresso/70 hover:bg-espresso/5'}`}>
             {t('nav.track')}
           </Link>
           {user ? (
@@ -84,7 +84,7 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
               </button>
             </div>
           ) : (
-            <Link to="/login" className={`hidden sm:inline-flex ${transparent ? 'btn-glass' : 'btn-outline'} btn-sm`}>{t('nav.login')}</Link>
+            <Link to="/login" className={`hidden sm:inline-flex whitespace-nowrap ${transparent ? 'btn-glass' : 'btn-outline'} btn-sm`}>{t('nav.login')}</Link>
           )}
           <button
             onClick={openDrawer}

@@ -6,6 +6,7 @@ import type { Category, ImageAsset, Product, Promotion } from '../types';
 import * as catalog from '../services/catalogService';
 import { listImages } from '../services/contentService';
 import { ImmersiveHero } from '../components/ImmersiveHero';
+import { StreetScene } from '../components/StreetScene';
 import { ProductCard } from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/Loading';
 import { Carousel } from '../components/Carousel';
@@ -36,6 +37,15 @@ export function Home() {
   const [promos, setPromos] = useState<Promotion[]>([]);
   const [gallery, setGallery] = useState<ImageAsset[]>([]);
   const [failed, setFailed] = useState(false);
+  // Primero la calle; tras "Entrar", el interior. Se recuerda en la sesión para no repetir la entrada.
+  const [inside, setInside] = useState(() => {
+    try { return sessionStorage.getItem('origen_inside') === '1'; } catch { return false; }
+  });
+  const enter = () => {
+    try { sessionStorage.setItem('origen_inside', '1'); } catch { /* sin almacenamiento */ }
+    setInside(true);
+    window.scrollTo({ top: 0 });
+  };
 
   useEffect(() => {
     Promise.all([
@@ -61,7 +71,13 @@ export function Home() {
 
   return (
     <div>
-      <ImmersiveHero />
+      {settings.street_scene_enabled !== 'false' && !inside ? (
+        <StreetScene onEnter={enter} />
+      ) : (
+        <motion.div initial={inside ? { opacity: 0, scale: 1.08 } : false} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8 }}>
+          <ImmersiveHero />
+        </motion.div>
+      )}
 
       {/* Categorías: la puerta a cada espacio de la carta */}
       <section id="explorar" className="section pt-20 pb-10">
