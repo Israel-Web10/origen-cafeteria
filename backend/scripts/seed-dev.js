@@ -57,6 +57,47 @@ const PRODUCTS = [
     { en: { name: 'Origen breakfast' }, fr: { name: 'Petit-déjeuner Origen' } }, [], [['Café en grano', 18]]],
 ];
 
+// Más productos de demostración. Se agregan aunque la carta ya exista (solo los que falten, por slug).
+// Precios de EJEMPLO para desarrollo: en producción la carta y los precios los carga el gerente.
+// [categoría, nombre, descripción, precio Bs, costo Bs, stock|null, flags, traducciones, variantes, receta, foto]
+const EXTRA_PRODUCTS = [
+  ['cafes', 'Americano', 'Espresso alargado con agua caliente.', 14, 3.4, null, { prep: 3 },
+    { en: { name: 'Americano', description: 'Espresso lengthened with hot water.' }, fr: { name: 'Americano', description: 'Espresso allongé à l\'eau chaude.' } },
+    [['Mediano', 0], ['Grande', 300]], [['Café en grano', 18], ['Vasos para llevar', 1]], 'americano'],
+  ['cafes', 'Latte', 'Espresso con abundante leche vaporizada.', 18, 5, null, { prep: 4 },
+    { en: { name: 'Latte', description: 'Espresso with plenty of steamed milk.' }, fr: { name: 'Latte', description: 'Espresso avec beaucoup de lait chaud.' } },
+    [['Mediano', 0], ['Grande', 400], ['Leche de almendra', 300]], [['Café en grano', 18], ['Leche entera', 220], ['Vasos para llevar', 1]], 'latte'],
+  ['cafes', 'Macchiato', 'Espresso manchado con un poco de espuma de leche.', 14, 3.8, null, { prep: 3 },
+    { en: { name: 'Macchiato', description: 'Espresso marked with a little milk foam.' }, fr: { name: 'Macchiato', description: 'Espresso tacheté d\'un peu de mousse de lait.' } },
+    [], [['Café en grano', 18], ['Leche entera', 30]], 'macchiato'],
+  ['bebidas-frias', 'Cold brew', 'Café infusionado en frío durante 16 horas, servido con hielo.', 20, 5, null, { is_new: true, prep: 2 },
+    { en: { name: 'Cold brew', description: 'Coffee steeped cold for 16 hours, served over ice.' }, fr: { name: 'Cold brew', description: 'Café infusé à froid pendant 16 heures, servi sur glace.' } },
+    [], [['Café en grano', 25], ['Vasos para llevar', 1]], 'cold-brew'],
+  ['bebidas-frias', 'Smoothie de frutos rojos', 'Frutillas, moras, plátano y yogur.', 22, 8, null, { prep: 5 },
+    { en: { name: 'Red berry smoothie', description: 'Strawberries, blackberries, banana and yogurt.' }, fr: { name: 'Smoothie aux fruits rouges', description: 'Fraises, mûres, banane et yaourt.' } },
+    [], [['Vasos para llevar', 1]], 'smoothie'],
+  ['reposteria', 'Cheesecake de arándanos', 'Base de galleta, crema de queso y salsa de arándanos.', 20, 7, 12, { is_featured: true, prep: 1 },
+    { en: { name: 'Blueberry cheesecake', description: 'Biscuit base, cream cheese and blueberry sauce.' }, fr: { name: 'Cheesecake aux myrtilles', description: 'Base biscuitée, fromage frais et coulis de myrtilles.' } },
+    [], [], 'cheesecake'],
+  ['reposteria', 'Galletas con chips de chocolate', 'Tres galletas horneadas cada mañana.', 12, 3.5, 40, { prep: 1 },
+    { en: { name: 'Chocolate chip cookies', description: 'Three cookies baked every morning.' }, fr: { name: 'Cookies aux pépites de chocolat', description: 'Trois cookies cuits chaque matin.' } },
+    [], [], 'cookies'],
+  ['reposteria', 'Empanadas de queso', 'Dos empanadas horneadas rellenas de queso.', 12, 4, 30, { is_new: true, prep: 2 },
+    { en: { name: 'Cheese empanadas', description: 'Two baked empanadas filled with cheese.' }, fr: { name: 'Empanadas au fromage', description: 'Deux empanadas cuites au four, fourrées au fromage.' } },
+    [], [], 'empanadas'],
+  ['desayunos', 'Tostada con palta', 'Pan de masa madre, palta, tomate y cebollín.', 26, 9, null, { prep: 8 },
+    { en: { name: 'Avocado toast', description: 'Sourdough, avocado, tomato and chives.' }, fr: { name: 'Tartine avocat', description: 'Pain au levain, avocat, tomate et ciboulette.' } },
+    [], [], 'avocado-toast'],
+];
+// Segunda foto en la ficha de algunos productos (galería del detalle)
+const PRODUCT_GALLERY = {
+  'Espresso': ['espresso-2', 'Café molido y en grano junto a la cafetera'],
+  'Café Origen': ['cafe-origen-2', 'Cerezas de café maduras en la planta'],
+  'Chocolate caliente de cacao boliviano': ['hot-chocolate-2', 'Mazorcas de cacao en el árbol'],
+  'Cappuccino': ['cappuccino-2', 'Taza humeante recién servida'],
+};
+const slugify = (name) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+
 // Fotos de demostración (Unsplash License, ver docs/RECURSOS-Y-LICENCIAS.md)
 const PRODUCT_IMAGES = {
   'Espresso': 'espresso', 'Cappuccino': 'cappuccino', 'Café Origen': 'cafe-origen',
@@ -105,7 +146,7 @@ async function main() {
         catIds[slug] = r.id;
       }
       for (const [cat, name, desc, price, cost, stock, flags, tr, variants, recipe] of PRODUCTS) {
-        const slug = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+        const slug = slugify(name);
         const p = await one(
           `INSERT INTO products (category_id, name, slug, description, price_cents, cost_cents, stock, is_featured, is_new, prep_time_minutes, translations, image_url)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
@@ -129,6 +170,37 @@ async function main() {
         ('address', 'Dirección de ejemplo (configurar en el panel)'), ('phone', '+591 70000000'), ('whatsapp', '+591 70000000'),
         ('delivery_enabled', 'true'), ('latitude', '-16.5000'), ('longitude', '-68.1500')
         ON CONFLICT (key) DO NOTHING`);
+    }
+    // Productos extra: solo los que falten (idempotente)
+    const cats = Object.fromEntries((await client.query('SELECT slug, id FROM categories')).rows.map((r) => [r.slug, r.id]));
+    const items = Object.fromEntries((await client.query('SELECT name, id FROM inventory_items')).rows.map((r) => [r.name, r.id]));
+    let added = 0;
+    for (const [cat, name, desc, price, cost, stock, flags, tr, variants, recipe, img] of EXTRA_PRODUCTS) {
+      const slug = slugify(name);
+      if (!cats[cat] || (await one('SELECT id FROM products WHERE slug = $1', [slug], client))) continue;
+      const p = await one(
+        `INSERT INTO products (category_id, name, slug, description, price_cents, cost_cents, stock, is_featured, is_new, prep_time_minutes, translations, image_url)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+        [cats[cat], name, slug, desc, Math.round(price * 100), Math.round(cost * 100), stock, !!flags.is_featured, !!flags.is_new, flags.prep ?? null, tr, media(img)], client);
+      if (stock) {
+        await client.query(`INSERT INTO stock_movements (product_id, type, quantity_delta, balance_after, reason, created_by) VALUES ($1,'entrada',$2,$2,'Stock inicial (demo)',$3)`, [p.id, stock, admin.id]);
+      }
+      for (const [i, [vname, delta]] of variants.entries()) {
+        await client.query('INSERT INTO product_variants (product_id, name, price_delta_cents, display_order) VALUES ($1,$2,$3,$4)', [p.id, vname, delta, i]);
+      }
+      for (const [itemName, qty] of recipe) {
+        if (items[itemName]) await client.query('INSERT INTO product_components (product_id, inventory_item_id, quantity) VALUES ($1,$2,$3)', [p.id, items[itemName], qty]);
+      }
+      added++;
+    }
+    if (added) console.log(`${added} producto(s) de demostración agregado(s).`);
+    // Galería del detalle: solo si el producto aún no tiene fotos adicionales
+    for (const [name, [img, alt]] of Object.entries(PRODUCT_GALLERY)) {
+      await client.query(
+        `INSERT INTO images (entity_type, entity_id, url, alt_text, is_illustrative, source, license, display_order)
+         SELECT 'product', p.id, $2, $3, TRUE, 'Unsplash', 'Unsplash License', 1 FROM products p
+          WHERE p.name = $1 AND NOT EXISTS (SELECT 1 FROM images i WHERE i.entity_type = 'product' AND i.entity_id = p.id)`,
+        [name, media(img), alt]);
     }
     for (const [name, img] of Object.entries(PRODUCT_IMAGES)) {
       await client.query('UPDATE products SET image_url = $2 WHERE name = $1 AND image_url IS NULL', [name, media(img)]);

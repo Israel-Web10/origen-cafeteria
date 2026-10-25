@@ -13,6 +13,8 @@ import { assetUrl } from '../services/api';
 import { formatDate } from '../lib/format';
 
 const LEGAL = ['privacy', 'cookies', 'terms', 'refunds', 'order-conditions'];
+// Video de fondo del encabezado (ilustrativo, ver docs/RECURSOS-Y-LICENCIAS.md)
+const BAND_VIDEOS: Record<string, string> = { history: '/media/video/historia.mp4', facilities: '/media/video/cafeteria.mp4' };
 
 export function ContentPage({ slug: fixedSlug }: { slug?: string }) {
   const { t, i18n } = useTranslation();
@@ -27,7 +29,10 @@ export function ContentPage({ slug: fixedSlug }: { slug?: string }) {
   useEffect(() => {
     setPage(undefined);
     getPage(slug, i18n.language as Locale).then(setPage).catch(() => setPage(null));
+    setImages([]);
+    // La cafetería: fotos del local; Nuestra historia: del cafetal a la taza
     if (slug === 'facilities') listImages('facility').then(setImages).catch(() => {});
+    if (slug === 'history') listImages('gallery').then(setImages).catch(() => {});
   }, [slug, i18n.language]);
 
   if (page === undefined) return <PageLoading />;
@@ -58,7 +63,8 @@ export function ContentPage({ slug: fixedSlug }: { slug?: string }) {
   const video = slug === 'history' && !calm ? settings.story_video_url : null;
   return (
     <div>
-      <SceneBand eyebrow={t(`content.eyebrow.${slug}`, { defaultValue: '' })} title={page.title} image={assetUrl(slug === 'history' ? settings.story_poster_url : settings.hero_poster_url)} />
+      <SceneBand eyebrow={t(`content.eyebrow.${slug}`, { defaultValue: '' })} title={page.title} image={slug === 'history' ? '/media/video/historia-poster.webp' : slug === 'facilities' ? '/media/video/cafeteria-poster.webp' : assetUrl(settings.hero_poster_url)}
+        video={BAND_VIDEOS[slug]} />
       <div className="section py-14 grid lg:grid-cols-[1fr_380px] gap-12">
         <div className="max-w-2xl">
           <Markdown source={page.body} />

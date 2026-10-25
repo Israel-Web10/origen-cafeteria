@@ -30,6 +30,50 @@ productos reales de ORIGEN**; conviene reemplazarlas por fotos propias desde *Pr
 | `beans.webp` | Indra Projects |
 | `latte-art.webp` | Jason W |
 
+**Ampliación 2026-10-24** (misma licencia, mismas condiciones: ilustrativas, reemplazables desde el panel):
+
+| Archivo | Autor (Unsplash) | Uso |
+|---|---|---|
+| `americano.webp` | Julia Florczak | Americano |
+| `latte.webp` | tabitha turner | Latte |
+| `macchiato.webp` | Jeremy Yap | Macchiato |
+| `cold-brew.webp` | tabitha turner | Cold brew |
+| `smoothie.webp` | Denis | Smoothie de frutos rojos |
+| `cheesecake.webp` | Kelsey Todd | Cheesecake |
+| `cookies.webp` | Mae Mu | Galletas |
+| `empanadas.webp` | Ana Beatriz | Empanadas de queso |
+| `avocado-toast.webp` | Tabita Princesia | Tostada con palta |
+| `espresso-2.webp` | Nathan Dumlao | Galería del Espresso |
+| `cafe-origen-2.webp` | Eduardo Gorghetto | Galería del Café Origen |
+| `hot-chocolate-2.webp` | Ly Le Minh | Galería del chocolate caliente |
+| `cappuccino-2.webp` | tabitha turner | Galería del Cappuccino |
+| `historia/cafetal.webp` | PROJETO CAFÉ GATO-MOURISCO | Nuestra historia |
+| `historia/cosecha.webp` | The Manh | Nuestra historia |
+| `historia/cacao.webp` | Aleksandar Popovski | Nuestra historia |
+| `historia/tostado.webp` | Tim Mossholder | Nuestra historia |
+| `historia/granos.webp` | Tina Guina | Nuestra historia |
+| `banners/promociones.webp` | Ahmet Yüksek | Encabezado de Promociones |
+
+Se descartaron candidatas con marcas visibles (galleta Lotus/Biscoff, frasco con relieve de marca) y una de
+un tostador comercial (cuenta de una marca de café).
+
+### Videos de fondo (`frontend/public/media/video/`)
+
+Descargados de **Mixkit** el 2026-10-24. Cada uno verificado en su página con la **Mixkit Stock Video Free
+License** (uso comercial permitido, sin atribución obligatoria; no se pueden revender sueltos). Recortados
+a 12 s, 1280 px, sin audio (0,3–1 MB cada uno). Se muestran solo en pantallas ≥ 768 px, sin "ahorro de
+datos" ni movimiento reducido; en móvil se ve el póster (imagen fija).
+
+| Archivo | Clip de Mixkit | Página |
+|---|---|---|
+| `carta.mp4` | Serving a sparkling cappuccino in a cup (41859) | Nuestra carta |
+| `historia.mp4` | Coffee beans falling on a layer of more beans (4982) | Nuestra historia |
+| `promociones.mp4` | A barista preparing coffee with milk and ice (796) | Promociones |
+| `cafeteria.mp4` | Latte art (810) | La cafetería |
+
+**GIF:** no se usan. Un GIF animado pesa entre 5 y 10 veces más que el mismo clip en MP4 y se ve peor; los
+videos cortos en bucle cumplen la misma función.
+
 ### Galería y portada
 
 | Archivo | Origen | Estado |

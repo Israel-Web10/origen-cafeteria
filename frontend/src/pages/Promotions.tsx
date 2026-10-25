@@ -7,13 +7,10 @@ import { SceneBand } from '../components/ImmersiveHero';
 import { ProductGrid } from './Menu';
 import { ProductCardSkeleton } from '../components/Loading';
 import { EmptyState } from '../components/EmptyState';
-import { useConfig } from '../context/ConfigContext';
-import { assetUrl } from '../services/api';
 import { formatDate, tr } from '../lib/format';
 
 export function Promotions() {
   const { t, i18n } = useTranslation();
-  const { settings } = useConfig();
   const [promos, setPromos] = useState<Promotion[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
 
@@ -24,7 +21,7 @@ export function Promotions() {
 
   return (
     <div>
-      <SceneBand eyebrow={t('promos.eyebrow')} title={t('promos.title')} subtitle={t('promos.subtitle')} image={assetUrl(settings.story_poster_url)} />
+      <SceneBand eyebrow={t('promos.eyebrow')} title={t('promos.title')} subtitle={t('promos.subtitle')} image="/media/banners/promociones.webp" video="/media/video/promociones.mp4" />
       <div className="section py-12">
         {promos && promos.length > 0 && (
           <ul className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">

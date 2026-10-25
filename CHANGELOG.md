@@ -8,6 +8,17 @@ La API pública está versionada en la URL (`/api/v1`). `/api` es un alias de la
 vigente para no romper clientes antiguos. Un cambio incompatible se publicará como `/api/v2`
 manteniendo `/api/v1` durante la transición y se anunciará aquí.
 
+## [2.2.0] — 2026-10-24
+
+### Añadido
+- 9 productos de demostración más con foto (americano, latte, macchiato, cold brew, smoothie, cheesecake,
+  galletas, empanadas, tostada con palta) y una segunda foto en la ficha de 4 productos.
+- *Nuestra historia* con fotos del cafetal al tostado; encabezado de *Promociones* con imagen propia.
+- Videos de fondo en los encabezados de carta, historia, promociones y la cafetería (Mixkit, licencia
+  libre). Solo en pantallas medianas o grandes y sin "ahorro de datos" ni movimiento reducido.
+- `frontend/vercel.json` (reescritura de `/api` al backend, rutas de la SPA y cabeceras de seguridad) y
+  guía [docs/DESPLIEGUE-VERCEL.md](docs/DESPLIEGUE-VERCEL.md): Vercel, Azure y la base de datos al entregar.
+
 ## [2.1.0] — 2026-10-23
 
 ### Añadido

@@ -62,6 +62,21 @@ async function main() {
         );
       }
     }
+    // "Nuestra historia": del cafetal a la taza. Fotos ILUSTRATIVAS de Unsplash (no son del negocio).
+    const story = await client.query("SELECT COUNT(*)::int AS n FROM images WHERE entity_type = 'gallery'");
+    if (story.rows[0].n === 0) {
+      const photos = [
+        ['cafetal', 'Cafetal en las laderas'], ['cosecha', 'Cosecha a mano de cerezas de café'],
+        ['cacao', 'Mazorcas de cacao en el árbol'], ['tostado', 'Granos recién tostados'], ['granos', 'Café en grano en saco de yute'],
+      ];
+      for (const [i, [file, alt]] of photos.entries()) {
+        await client.query(
+          `INSERT INTO images (entity_type, url, alt_text, is_illustrative, source, license, display_order)
+           VALUES ('gallery', $1, $2, TRUE, 'Unsplash', 'Unsplash License (ver docs/RECURSOS-Y-LICENCIAS.md)', $3)`,
+          [`/media/historia/${file}.webp`, alt, i]
+        );
+      }
+    }
     await client.query('COMMIT');
     console.log(`Datos de referencia listos (${inserted} página(s) nueva(s)).`);
   } catch (err) {

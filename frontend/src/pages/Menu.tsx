@@ -9,7 +9,6 @@ import { ProductCard } from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/Loading';
 import { EmptyState } from '../components/EmptyState';
 import { SceneBand } from '../components/ImmersiveHero';
-import { useConfig } from '../context/ConfigContext';
 import { assetUrl, errorMessage } from '../services/api';
 import { tr } from '../lib/format';
 import { staggerContainer, staggerItem } from '../lib/transitions';
@@ -20,7 +19,6 @@ export function Menu() {
   const { t, i18n } = useTranslation();
   const { category: categorySlug } = useParams();
   const [params, setParams] = useSearchParams();
-  const { settings } = useConfig();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +61,8 @@ export function Menu() {
         eyebrow={t('menu.eyebrow')}
         title={active ? tr(active, i18n.language) : t('menu.title')}
         subtitle={active ? tr(active, i18n.language, 'description') : t('menu.subtitle')}
-        image={assetUrl(active?.image_url || settings.hero_poster_url)}
+        image={assetUrl(active?.image_url || '/media/video/carta-poster.webp')}
+        video={active ? undefined : '/media/video/carta.mp4'}
       />
 
       <div className="sticky top-16 z-30 bg-cream/95 backdrop-blur-md border-b border-espresso/10">

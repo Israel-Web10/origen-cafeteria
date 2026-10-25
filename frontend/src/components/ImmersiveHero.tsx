@@ -175,8 +175,24 @@ export function ImmersiveHero() {
 }
 
 /** Cabecera con profundidad para páginas internas (imagen + parallax de scroll). */
-export function SceneBand({ title, eyebrow, subtitle, image, children }: { title: string; eyebrow?: string; subtitle?: string; image?: string; children?: React.ReactNode }) {
+/** Video de fondo solo en pantallas medianas o grandes, sin "ahorro de datos" y sin movimiento reducido. */
+function useBackgroundVideo(enabled: boolean) {
+  const [ok, setOk] = useState(false);
+  useEffect(() => {
+    if (!enabled) { setOk(false); return; }
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    const mq = window.matchMedia('(min-width: 768px)');
+    const update = () => setOk(mq.matches && !conn?.saveData);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [enabled]);
+  return ok;
+}
+
+export function SceneBand({ title, eyebrow, subtitle, image, video, children }: { title: string; eyebrow?: string; subtitle?: string; image?: string; video?: string; children?: React.ReactNode }) {
   const calm = useCalmMotion();
+  const showVideo = useBackgroundVideo(Boolean(video) && !calm);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
@@ -185,6 +201,10 @@ export function SceneBand({ title, eyebrow, subtitle, image, children }: { title
     <section ref={ref} className="relative overflow-hidden bg-espresso text-cream pt-16">
       {image && (
         <motion.img src={image} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover opacity-45" style={calm ? undefined : { y, scale }} />
+      )}
+      {video && showVideo && (
+        <motion.video key={video} src={video} poster={image} autoPlay muted loop playsInline preload="metadata" aria-hidden
+          className="absolute inset-0 w-full h-full object-cover opacity-50" style={{ y, scale }} />
       )}
       <div className="absolute inset-0 vignette" aria-hidden />
       <div className="absolute inset-0 warm-light" aria-hidden />

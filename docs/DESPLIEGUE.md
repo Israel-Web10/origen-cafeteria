@@ -23,6 +23,8 @@
 | **B'. VPS propio** | Hetzner CX23 o Contabo (€4,40–5,50 + IPv4) con Postgres, Nginx y disco local | ≈ €5–7 | Más barato y con disco persistente (sin bucket), pero **tú administras** actualizaciones, firewall y backups |
 | **C. Profesional** | Render Pro + instancia 2 GB + Postgres 1 GB | ≈ USD 72–80 | Más recursos y retención de backups |
 
+**¿Vercel o Azure?** Guía específica: [DESPLIEGUE-VERCEL.md](DESPLIEGUE-VERCEL.md).
+
 No recomendados para producción: Vercel Hobby (prohíbe uso comercial), Render Postgres Free (se borra a los
 30 días), Render Free para la API (se apaga sin tráfico). Azure SQL/SQL Server no aporta ventaja: obligaría a
 reescribir la capa de datos ya probada en PostgreSQL.
@@ -56,7 +58,7 @@ Plantilla: `deploy/.env.production.example`. Obligatorias:
 | `STORAGE_DRIVER` | `local` en VPS; `s3` en Render/Railway (+ variables `S3_*`) |
 | `CARD_PROVIDER` | `none` (el modo `test` está bloqueado en producción) |
 
-Frontend: si la API está en otro dominio, `VITE_API_URL=https://api.tu-dominio.com/api` al compilar.
+Frontend: si la API está en otro dominio, `VITE_API_URL=https://api.tu-dominio.com/api/v1` al compilar (con Vercel no hace falta: ver [DESPLIEGUE-VERCEL.md](DESPLIEGUE-VERCEL.md)).
 Ninguna URL local queda incrustada en el código.
 
 ## 4. Despliegue en un VPS (opción B')
@@ -113,7 +115,7 @@ Nginx limita por IP (429 al exceder); el servicio arranca con `src/cluster.js`.
 1. **Base de datos** (Render Postgres): crea la base, ejecuta `database/roles.sql` adaptado o usa el usuario
    que entrega el proveedor; copia la `DATABASE_URL` interna. `DB_SSL=require`.
 2. **API** (Render Web Service): raíz `backend`, comando de build `npm ci --omit=dev`, comando de inicio
-   `node scripts/migrate.js && node scripts/seed-reference.js && node src/server.js`, health check `/api/health`,
+   `node scripts/migrate.js && node scripts/seed-reference.js && npm start`, health check `/api/v1/health`,
    variables del punto 3 con `STORAGE_DRIVER=s3`.
 3. **Imágenes** (Cloudflare R2): bucket `origen-media`, dominio público (p. ej. `media.tu-dominio.com`) que
    exponga solo la carpeta `public/`; credenciales en `S3_*`. *El controlador S3 se probó con un cliente
@@ -124,7 +126,7 @@ Nginx limita por IP (429 al exceder); el servicio arranca con `src/cluster.js`.
 
 ## 6. Verificación tras publicar
 
-- [ ] `https://api.../api/health` → `{"status":"ok","db":"ok"}`
+- [ ] `https://api.../api/v1/health` → `{"status":"ok","db":"ok"}`
 - [ ] La web carga por HTTPS y redirige HTTP → HTTPS
 - [ ] Pedido de prueba completo (crear, pagar en efectivo, verificar en el panel, cancelar otro)
 - [ ] Subir logo y QR; recargar y comprobar que siguen ahí **después de reiniciar/redeploy**
