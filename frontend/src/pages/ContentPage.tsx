@@ -10,6 +10,7 @@ import { PageLoading } from '../components/Loading';
 import { Carousel } from '../components/Carousel';
 import { useConfig, useCalmMotion } from '../context/ConfigContext';
 import { assetUrl } from '../services/api';
+import { Lightbox } from '../components/Lightbox';
 import { formatDate } from '../lib/format';
 
 const LEGAL = ['privacy', 'cookies', 'terms', 'refunds', 'order-conditions'];
@@ -24,6 +25,7 @@ export function ContentPage({ slug: fixedSlug }: { slug?: string }) {
   const calm = useCalmMotion();
   const [page, setPage] = useState<Page | null | undefined>(undefined);
   const [images, setImages] = useState<ImageAsset[]>([]);
+  const [photo, setPhoto] = useState<number | null>(null);
   const legal = LEGAL.includes(slug);
 
   useEffect(() => {
@@ -87,13 +89,14 @@ export function ContentPage({ slug: fixedSlug }: { slug?: string }) {
       {images.length > 0 && (
         <section className="section pb-10">
           <Carousel label={t('home.galleryTitle')} itemClassName="w-[85%] sm:w-[48%] lg:w-[32%]">
-            {images.map((img) => (
-              <figure key={img.id} className="relative aspect-[4/3] rounded-card overflow-hidden">
-                <img src={assetUrl(img.url)} alt={img.alt_text || ''} loading="lazy" className="w-full h-full object-cover" />
-                {img.is_illustrative && <figcaption className="absolute bottom-2 left-2 text-[11px] text-cream bg-espresso/60 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</figcaption>}
-              </figure>
+            {images.map((img, i) => (
+              <button key={img.id} type="button" onClick={() => setPhoto(i)} className="group relative block w-full aspect-[4/3] rounded-card overflow-hidden" aria-label={t('home.openPhoto', { name: img.alt_text || '' })}>
+                <img src={assetUrl(img.url)} alt={img.alt_text || ''} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                {img.is_illustrative && <span className="absolute bottom-2 left-2 text-[11px] text-cream bg-espresso/60 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</span>}
+              </button>
             ))}
           </Carousel>
+          <Lightbox images={images.map((g) => ({ src: assetUrl(g.url) ?? '', alt: g.alt_text || '', illustrative: g.is_illustrative }))} index={photo} onClose={() => setPhoto(null)} />
         </section>
       )}
     </div>

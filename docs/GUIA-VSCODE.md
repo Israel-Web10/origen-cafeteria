@@ -1,20 +1,23 @@
 # Ejecutar ORIGEN en tu PC con Visual Studio Code (Windows)
 
-Usa tu PostgreSQL 17 instalado (servicio `postgresql-x64-17`, puerto 5432) y la contraseña del usuario
-`postgres` que elegiste al instalarlo.
+Tres comandos, en este orden. Todo se escribe en la terminal de VS Code, **desde la carpeta
+`origen-cafeteria`** (no dentro de `backend` ni de `frontend`).
 
 ## 0. Requisitos (una sola vez)
 
-- Node.js 20 o superior (`node -v`)
-- PostgreSQL 17 en ejecución
-- Visual Studio Code
+| Programa | Cómo comprobarlo | Dónde conseguirlo |
+|---|---|---|
+| Node.js 20 o superior | `node -v` | https://nodejs.org (versión LTS) |
+| PostgreSQL 14 o superior, **encendido** | Servicios de Windows → `postgresql-x64-17` → "En ejecución" | https://www.postgresql.org/download/windows/ |
+| La contraseña del usuario `postgres` | La elegiste al instalar PostgreSQL | — |
+| Visual Studio Code | — | https://code.visualstudio.com |
 
 ## 1. Abrir el proyecto
 
-VS Code → **Archivo → Abrir carpeta…** → `origen-cafeteria`.
-Abre una terminal con **Terminal → Nueva terminal** (Ctrl + ñ). Los comandos son para PowerShell.
+VS Code → **Archivo → Abrir carpeta…** → elige `origen-cafeteria`.
+Abre una terminal: **Terminal → Nueva terminal** (Ctrl + ñ).
 
-Si clonas en otra PC:
+Si es una PC nueva:
 
 ```powershell
 git clone https://github.com/Israel-Web10/origen-cafeteria.git
@@ -23,112 +26,72 @@ git checkout modernizacion-origen
 code .
 ```
 
-## 2. Crear la base de datos y los usuarios (una sola vez)
-
-1. Abre `database/roles.sql` y reemplaza las tres contraseñas `CAMBIAR_...` por contraseñas propias. Anótalas.
-2. En la terminal:
+## 2. Instalar (una sola vez, o cuando algo falle)
 
 ```powershell
-& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -f database\roles.sql
-```
-
-(pide la contraseña de `postgres`). Crea la base `origen_cafeteria` y los usuarios `origen_owner`, `origen_app` y `origen_backup`.
-
-## 3. Backend
-
-```powershell
-cd backend
-npm install
-Copy-Item .env.example .env
-node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
-```
-
-Edita `backend\.env`:
-
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=origen_app
-DB_PASSWORD=<contraseña de origen_app>
-DB_NAME=origen_cafeteria
-JWT_SECRET=<el texto que generó el comando anterior>
-CARD_PROVIDER=none
-```
-
-Crea las tablas con el usuario dueño (solo la primera vez y en cada actualización):
-
-```powershell
-$env:DB_USER="origen_owner"; $env:DB_PASSWORD="<contraseña de origen_owner>"
 npm run setup
-Remove-Item Env:DB_USER, Env:DB_PASSWORD
 ```
 
-Datos de prueba (opcional, solo en tu PC) y cuenta de administrador:
+El asistente hace todo:
 
-```powershell
-$env:DB_USER="origen_owner"; $env:DB_PASSWORD="<contraseña de origen_owner>"
-npm run seed:dev -- --with-history
-Remove-Item Env:DB_USER, Env:DB_PASSWORD
-npm run create-admin -- --email tu-correo@ejemplo.com --name "Tu Nombre"
-```
+1. Instala las dependencias del backend y del frontend.
+2. Crea `backend\.env` y genera el secreto `JWT_SECRET`.
+3. Prueba la conexión a PostgreSQL. Si el usuario no existe o la contraseña no coincide, te pregunta si
+   quieres usar el usuario `postgres` y te pide su contraseña (no se ve al escribir; es normal).
+4. Crea la base `origen_cafeteria`, sus tablas y los textos legales.
+5. Pregunta si quieres **datos de demostración**: 19 productos con fotos, dos meses de pedidos simulados y
+   cuentas de prueba `@origen.dev`. Responde **S** para practicar o presentar.
 
-`seed:dev` crea cuentas de prueba `@origen.dev` (ver `backend/scripts/seed-dev.js`). No lo uses en producción.
-
-Arranca la API (déjala abierta):
+## 3. Arrancar (cada día)
 
 ```powershell
 npm run dev
 ```
 
-Comprueba en el navegador: http://localhost:4000/api/health → `{"status":"ok","db":"ok"}`
+Arranca la API y la web juntas. Cuando veas **"✔ Listo"**, abre:
 
-## 4. Frontend (segunda terminal: botón **+** de la terminal)
+- Web: http://localhost:5173
+- Panel del gerente: http://localhost:5173/login (las cuentas de prueba están en
+  `backend\scripts\seed-dev.js`, línea 8)
 
-```powershell
-cd frontend
-npm install
-npm run dev
-```
+**Ctrl + C** detiene las dos.
 
-Abre http://localhost:5173. El panel está en http://localhost:5173/login (entra con la cuenta de administrador).
+También puedes usar el menú, sin escribir: **Terminal → Ejecutar tarea… → "ORIGEN: iniciar web y API"**
+(o **Ctrl + Shift + B**).
 
-## 5. Uso diario
-
-| Paso | Terminal | Comando |
-|---|---|---|
-| 1 | Backend | `cd backend` → `npm run dev` |
-| 2 | Frontend | `cd frontend` → `npm run dev` |
-| 3 | Navegador | http://localhost:5173 |
-
-Ctrl + C detiene cada servidor.
-
-## 6. Verificar el proyecto
+## 4. Si algo falla
 
 ```powershell
-cd backend
-npm test        # requiere una base de pruebas, ver abajo
-npm run lint
-npm audit
-cd ..\frontend
-npm run build   # traducciones + TypeScript + compilación
-npm run lint
-npm audit
+npm run doctor
 ```
 
-Base para `npm test` (su nombre debe terminar en `_test`; se borra en cada ejecución):
+Revisa todo **sin cambiar nada** y te dice qué falta.
 
-```powershell
-& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -c "CREATE DATABASE origen_test OWNER origen_owner"
-$env:DB_USER="origen_owner"; $env:DB_PASSWORD="<contraseña de origen_owner>"; npm test; Remove-Item Env:DB_USER, Env:DB_PASSWORD
-```
-
-## 7. Problemas frecuentes
-
-| Mensaje | Solución |
+| Mensaje | Qué hacer |
 |---|---|
-| `JWT_SECRET debe tener al menos 32 caracteres` | Falta el secreto en `backend\.env` |
-| `password authentication failed` | Usuario o contraseña incorrectos en `.env` |
-| `permission denied for schema public` | Ejecuta `npm run setup` con `origen_owner` |
-| La web no muestra productos | La API no está encendida (paso 3) o no cargaste productos |
-| `EADDRINUSE :4000` | Ya hay otra API abierta: ciérrala o cambia `PORT` en `.env` |
-| `psql` no se reconoce | Usa la ruta completa `C:\Program Files\PostgreSQL\17\bin\psql.exe` |
+| `JWT_SECRET vacío o corto` | `npm run setup` (lo genera) |
+| `PostgreSQL rechazó el usuario…` | `npm run setup` y acepta usar el usuario `postgres` |
+| `PostgreSQL no responde en localhost:5432` | Enciende el servicio: Servicios de Windows → `postgresql-x64-17` → Iniciar |
+| `Faltan las tablas` | `npm run setup` |
+| `EADDRINUSE :4000` o `:5173` | Ya hay otra copia abierta: ciérrala (Ctrl + C en su terminal) o reinicia VS Code |
+| `npm` no se reconoce | Reinstala Node.js y **reinicia VS Code** |
+| La web abre pero sin productos | La API no arrancó: mira las líneas `[api]` en la terminal |
+
+## 5. Comprobar la calidad del proyecto
+
+```powershell
+npm test   # pruebas del backend + compilación del frontend
+```
+
+Las pruebas del backend usan una base aparte cuyo nombre termina en `_test` y que se borra en cada
+ejecución. Créala una vez:
+
+```powershell
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -c "CREATE DATABASE origen_test"
+```
+
+## 6. Producción (no en tu PC)
+
+En un servidor real **no** se usa el usuario `postgres` ni los datos de demostración. Se crean usuarios
+con permisos mínimos (`database/roles.sql`) y el primer administrador con `npm run create-admin`. Ver
+[DESPLIEGUE.md](DESPLIEGUE.md) y [DESPLIEGUE-VERCEL.md](DESPLIEGUE-VERCEL.md).

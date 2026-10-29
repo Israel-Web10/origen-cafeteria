@@ -79,6 +79,45 @@
       "closed": "FERMÉ",
       "illustration": "Façade illustrée. Le panneau de la porte indique les horaires réels.",
       "photoNote": "Notre façade."
+    },
+    "openPhoto": "Agrandir la photo : {{name}}",
+    "journey": {
+      "eyebrow": "De la plantation à la tasse",
+      "title": "Le voyage de chaque tasse",
+      "cta": "Découvrir notre histoire",
+      "grow": {
+        "title": "Né dans la montagne",
+        "text": "Le café pousse à l’ombre, sur des pentes élevées, où il mûrit lentement et gagne en douceur."
+      },
+      "harvest": {
+        "title": "Cueilli à la main",
+        "text": "Les cerises sont récoltées rouges et mûres ; c’est de là que vient le grain."
+      },
+      "roast": {
+        "title": "La torréfaction réveille l’arôme",
+        "text": "La chaleur transforme le grain vert et révèle des notes de chocolat, de fruits et de caramel."
+      },
+      "cup": {
+        "title": "Et arrive dans votre tasse",
+        "text": "Nous le moulons et le préparons à la minute, pour que chaque gorgée garde toute sa saveur."
+      }
+    },
+    "how": {
+      "eyebrow": "Commander, c’est simple",
+      "title": "Votre commande en trois étapes",
+      "cta": "Voir la carte",
+      "choose": {
+        "title": "Choisissez",
+        "text": "Parcourez la carte, choisissez la taille ou le lait et ajoutez au panier."
+      },
+      "pay": {
+        "title": "Payez",
+        "text": "Choisissez un moyen de paiement disponible ; le total est calculé par le système, sans surprise."
+      },
+      "pickup": {
+        "title": "Récupérez",
+        "text": "Suivez votre commande en ligne et venez la chercher quand elle est prête."
+      }
     }
   },
   "menu": {

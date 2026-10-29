@@ -79,6 +79,45 @@
       "closed": "CLOSED",
       "illustration": "Illustrated storefront. The door sign shows the real opening hours.",
       "photoNote": "Our storefront."
+    },
+    "openPhoto": "View larger photo: {{name}}",
+    "journey": {
+      "eyebrow": "From farm to cup",
+      "title": "The journey of every cup",
+      "cta": "Read our story",
+      "grow": {
+        "title": "Born in the mountains",
+        "text": "Coffee grows in the shade on high slopes, where it ripens slowly and gains sweetness."
+      },
+      "harvest": {
+        "title": "Picked by hand",
+        "text": "Cherries are picked when red and ripe; that is where the bean comes from."
+      },
+      "roast": {
+        "title": "Roasting awakens the aroma",
+        "text": "Heat transforms the green bean and reveals notes of chocolate, fruit and caramel."
+      },
+      "cup": {
+        "title": "And reaches your cup",
+        "text": "We grind and brew it on the spot, so every sip keeps all its flavour."
+      }
+    },
+    "how": {
+      "eyebrow": "Ordering is easy",
+      "title": "Your order in three steps",
+      "cta": "See the menu",
+      "choose": {
+        "title": "Choose",
+        "text": "Browse the menu, pick size or milk and add to your cart."
+      },
+      "pay": {
+        "title": "Pay",
+        "text": "Choose an available payment method; the total is calculated by the system, no surprises."
+      },
+      "pickup": {
+        "title": "Pick up",
+        "text": "Track your order online and collect it when it is ready."
+      }
     }
   },
   "menu": {

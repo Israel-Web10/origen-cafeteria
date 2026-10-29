@@ -8,6 +8,22 @@ La API pública está versionada en la URL (`/api/v1`). `/api` es un alias de la
 vigente para no romper clientes antiguos. Un cambio incompatible se publicará como `/api/v2`
 manteniendo `/api/v1` durante la transición y se anunciará aquí.
 
+## [2.3.0] — 2026-10-29
+
+### Añadido
+- Instalación en un comando desde la raíz: `npm run setup` (asistente que crea `backend/.env`, genera
+  `JWT_SECRET`, prueba PostgreSQL, crea la base y carga datos), `npm run dev` (API y web juntas) y
+  `npm run doctor` (diagnóstico sin cambios). Tareas de VS Code en `.vscode/tasks.json`.
+- Integración continua en GitHub Actions: pruebas con PostgreSQL real, lint, build y escaneo de secretos.
+- `npm run smoke -- <url>`: prueba de humo de una web publicada (API, carta, páginas, cabeceras, carga).
+- Inicio: relato "Del cafetal a la taza" guiado por el scroll y sección "Tu pedido en tres pasos" con
+  iconos animados; visor de fotos a pantalla completa en las galerías; barra de progreso de lectura y de
+  posición en los carruseles.
+
+### Corregido
+- `npm run setup` fallaba con `JWT_SECRET` vacío o con un usuario de PostgreSQL inexistente: ahora el
+  asistente lo detecta y lo resuelve.
+
 ## [2.2.0] — 2026-10-24
 
 ### Añadido

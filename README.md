@@ -29,22 +29,17 @@ tarjeta preparada en modo de pruebas). Español, inglés y francés.
 
 ## Inicio rápido (desarrollo)
 
-Requisitos: Node 20+, PostgreSQL 14+.
+Requisitos: Node 20+, PostgreSQL 14+ instalado y encendido. Desde la carpeta del proyecto:
 
 ```bash
-# 1. Backend
-cd backend
-npm install
-cp .env.example .env          # completa DB_* y JWT_SECRET (ver docs/INSTALACION.md)
-npm run setup                 # migraciones + datos de referencia
-npm run seed:dev              # catálogo y cuentas de PRUEBA (solo desarrollo)
-npm run dev
-
-# 2. Frontend (otra terminal)
-cd frontend
-npm install
-npm run dev                   # http://localhost:5173  (/api se reenvía al backend)
+npm run setup     # instala todo, crea backend/.env, la base, las tablas y (si quieres) datos de demostración
+npm run dev       # arranca API y web juntas → http://localhost:5173
+npm run doctor    # si algo falla: revisa y explica qué falta, sin cambiar nada
 ```
+
+`setup` es un asistente: si el usuario de la base no existe o la contraseña no coincide, ofrece usar el
+usuario `postgres` de tu instalación y te pide su contraseña (no se muestra en pantalla). En VS Code también
+están como tareas: *Terminal → Ejecutar tarea… → ORIGEN: …*
 
 Cuentas de prueba (solo desarrollo, definidas en `backend/scripts/seed-dev.js`): administrador,
 gerente y cliente con correos `@origen.dev`. En producción se crea el primer administrador con
@@ -56,7 +51,7 @@ Guía paso a paso para personas no técnicas: **[docs/INSTALACION.md](docs/INSTA
 
 | Dónde | Comando | Qué hace |
 |---|---|---|
-| backend | `npm test` | 31 pruebas (unitarias + integración HTTP contra una base `_test`) |
+| backend | `npm test` | 41 pruebas (unitarias + integración HTTP contra una base `_test`) |
 | backend | `npm run lint` | ESLint |
 | backend | `npm run migrate:status` | Estado de migraciones |
 | backend | `npm run create-admin -- --email ...` | Primer administrador de producción |

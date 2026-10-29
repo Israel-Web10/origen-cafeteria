@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 /** Atrapa el foco dentro del contenedor, cierra con Escape y restaura el foco al cerrar. */
-function useDialog(open: boolean, onClose: () => void) {
+export function useDialog(open: boolean, onClose: () => void) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;

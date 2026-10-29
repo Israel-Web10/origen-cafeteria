@@ -79,6 +79,45 @@
       "closed": "CERRADO",
       "illustration": "Fachada ilustrada. El letrero de la puerta muestra el horario real.",
       "photoNote": "Fachada del local."
+    },
+    "openPhoto": "Ver foto en grande: {{name}}",
+    "journey": {
+      "eyebrow": "Del cafetal a la taza",
+      "title": "El viaje de cada taza",
+      "cta": "Conoce nuestra historia",
+      "grow": {
+        "title": "Nace en la montaña",
+        "text": "El café crece a la sombra, en laderas altas, donde madura despacio y gana dulzor."
+      },
+      "harvest": {
+        "title": "Se cosecha a mano",
+        "text": "Las cerezas se recogen cuando están rojas y maduras; de ahí sale el grano."
+      },
+      "roast": {
+        "title": "El tostado despierta el aroma",
+        "text": "El calor transforma el grano verde y revela notas a chocolate, frutos y caramelo."
+      },
+      "cup": {
+        "title": "Y llega a tu taza",
+        "text": "Lo molemos y preparamos al momento, para que cada sorbo conserve todo su sabor."
+      }
+    },
+    "how": {
+      "eyebrow": "Pedir es fácil",
+      "title": "Tu pedido en tres pasos",
+      "cta": "Ver la carta",
+      "choose": {
+        "title": "Elige",
+        "text": "Explora la carta, personaliza tamaño o leche y añade al carrito."
+      },
+      "pay": {
+        "title": "Paga",
+        "text": "Elige un método de pago disponible; el total lo calcula el sistema, sin sorpresas."
+      },
+      "pickup": {
+        "title": "Recoge",
+        "text": "Sigue el estado de tu pedido en línea y pásalo a buscar cuando esté listo."
+      }
     }
   },
   "menu": {

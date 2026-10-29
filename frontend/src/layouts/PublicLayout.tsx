@@ -5,6 +5,7 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { CartDrawer } from '../components/CartDrawer';
 import { CookieBanner } from '../components/CookieBanner';
+import { ScrollProgress } from '../components/ScrollProgress';
 import { kindFor, pageVariants, TransitionKind } from '../lib/transitions';
 import { useCalmMotion } from '../context/ConfigContext';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,7 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col overflow-x-clip">
       <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] btn-primary">{t('a11y.skip')}</a>
+      <ScrollProgress />
       <Navbar overlay={overlay} />
       <main id="contenido" className={`relative flex-1 outline-none ${overlay ? '' : 'pt-16'}`} tabIndex={-1}>
         {/* popLayout: la página nueva se monta de inmediato y la anterior sale superpuesta.

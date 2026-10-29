@@ -10,6 +10,9 @@ import { StreetScene } from '../components/StreetScene';
 import { ProductCard } from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/Loading';
 import { Carousel } from '../components/Carousel';
+import { CoffeeJourney } from '../components/CoffeeJourney';
+import { HowToOrder } from '../components/HowToOrder';
+import { Lightbox } from '../components/Lightbox';
 import { CacaoPod, CoffeeBean, ChocolateSquare } from '../components/Brand';
 import { useConfig, useCalmMotion } from '../context/ConfigContext';
 import { assetUrl } from '../services/api';
@@ -37,6 +40,7 @@ export function Home() {
   const [promos, setPromos] = useState<Promotion[]>([]);
   const [gallery, setGallery] = useState<ImageAsset[]>([]);
   const [failed, setFailed] = useState(false);
+  const [photo, setPhoto] = useState<number | null>(null);
   // Primero la calle; tras "Entrar", el interior. Se recuerda en la sesión para no repetir la entrada.
   const [inside, setInside] = useState(() => {
     try { return sessionStorage.getItem('origen_inside') === '1'; } catch { return false; }
@@ -119,6 +123,9 @@ export function Home() {
         )}
       </section>
 
+      {/* Del cafetal a la taza: relato guiado por el scroll */}
+      <CoffeeJourney />
+
       {/* Promociones vigentes */}
       {promos.length > 0 && (
         <section className="py-12">
@@ -151,6 +158,8 @@ export function Home() {
         </section>
       )}
 
+      <HowToOrder />
+
       {/* Historia */}
       <section className="section py-16 grid md:grid-cols-2 gap-10 items-center">
         <Reveal className="relative aspect-[4/3] rounded-card overflow-hidden shadow-lift">
@@ -171,13 +180,15 @@ export function Home() {
         <section className="section py-12">
           <Reveal><h2 className="text-3xl md:text-4xl mb-8">{t('home.galleryTitle')}</h2></Reveal>
           <Carousel label={t('home.galleryTitle')} itemClassName="w-[85%] sm:w-[48%] lg:w-[32%]">
-            {gallery.map((img) => (
-              <figure key={img.id} className="relative aspect-[4/3] rounded-card overflow-hidden">
-                <img src={assetUrl(img.url)} alt={img.alt_text || ''} loading="lazy" className="w-full h-full object-cover" />
-                {img.is_illustrative && <figcaption className="absolute bottom-2 left-2 text-[11px] text-cream bg-espresso/60 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</figcaption>}
-              </figure>
+            {gallery.map((img, i) => (
+              <button key={img.id} type="button" onClick={() => setPhoto(i)} className="group relative block w-full aspect-[4/3] rounded-card overflow-hidden" aria-label={t('home.openPhoto', { name: img.alt_text || '' })}>
+                <img src={assetUrl(img.url)} alt={img.alt_text || ''} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <span className="absolute inset-0 bg-espresso/0 group-hover:bg-espresso/20 transition-colors" aria-hidden />
+                {img.is_illustrative && <span className="absolute bottom-2 left-2 text-[11px] text-cream bg-espresso/60 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</span>}
+              </button>
             ))}
           </Carousel>
+          <Lightbox images={gallery.map((g) => ({ src: assetUrl(g.url) ?? '', alt: g.alt_text || '', illustrative: g.is_illustrative }))} index={photo} onClose={() => setPhoto(null)} />
         </section>
       )}
 

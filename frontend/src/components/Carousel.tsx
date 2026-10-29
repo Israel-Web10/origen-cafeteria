@@ -11,11 +11,14 @@ export function Carousel({ children, label, itemClassName = 'w-[72%] sm:w-[42%] 
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: false });
+  const [pos, setPos] = useState({ width: 1, offset: 0 });
 
   const update = () => {
     const el = ref.current;
     if (!el) return;
     setEdges({ start: el.scrollLeft < 8, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 8 });
+    // Tamaño y posición de la barra: parte visible del total
+    setPos({ width: Math.min(1, el.clientWidth / el.scrollWidth), offset: el.scrollWidth > el.clientWidth ? el.scrollLeft / el.scrollWidth : 0 });
   };
 
   useEffect(() => {
@@ -37,6 +40,11 @@ export function Carousel({ children, label, itemClassName = 'w-[72%] sm:w-[42%] 
           </div>
         ))}
       </div>
+      {pos.width < 1 && (
+        <div className="h-1 rounded-full bg-espresso/10 overflow-hidden mt-1" aria-hidden>
+          <div className="h-full bg-gold rounded-full transition-transform duration-300 ease-out" style={{ width: `${pos.width * 100}%`, transform: `translateX(${(pos.offset / pos.width) * 100}%)` }} />
+        </div>
+      )}
       <div className="hidden sm:flex gap-2 absolute -top-14 right-0">
         <button className="w-10 h-10 rounded-full border border-espresso/20 hover:bg-espresso hover:text-cream disabled:opacity-30 transition" onClick={() => scroll(-1)} disabled={edges.start} aria-label={t('common.previous')}>←</button>
         <button className="w-10 h-10 rounded-full border border-espresso/20 hover:bg-espresso hover:text-cream disabled:opacity-30 transition" onClick={() => scroll(1)} disabled={edges.end} aria-label={t('common.next')}>→</button>

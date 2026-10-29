@@ -1,6 +1,6 @@
 {
   "name": "origen-backend",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "API REST de ORIGEN (Express + PostgreSQL)",
   "main": "src/server.js",
   "type": "commonjs",

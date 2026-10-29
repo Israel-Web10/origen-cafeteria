@@ -1,5 +1,9 @@
 # Instalación de ORIGEN paso a paso
 
+> **Camino rápido (recomendado):** desde la carpeta del proyecto, `npm run setup` desde la raíz y luego
+> `npm run dev`. El asistente hace por ti los pasos de esta guía. Paso a paso, con la tabla de errores frecuentes:
+> [GUIA-VSCODE.md](GUIA-VSCODE.md). Esta guía queda como referencia del proceso manual y de producción.
+
 Esta guía está pensada para alguien sin experiencia en programación. Sigue los pasos en orden.
 
 ## 1. Programas necesarios
