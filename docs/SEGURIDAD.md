@@ -49,11 +49,15 @@ cifrado del disco del proveedor y respaldos con permisos restringidos.
 | 24 | Dependencias vulnerables | Actualizadas (Express, multer, morgan, React Router 7, Vite 6); `npm audit` revisado | `package.json` | Ver abajo |
 | 25 | Claves en el repositorio / facturas por uso de APIs | Claves solo en `.env` del servidor (ignorado por Git); escáner `scripts/check-secrets.mjs` + gancho `pre-commit` que bloquea el commit; ninguna API de pago integrada (ver [IA-Y-COSTOS.md](IA-Y-COSTOS.md)) | `.githooks/`, `scripts/` | Bajo. Activar el gancho en cada equipo: `git config core.hooksPath .githooks` |
 
-## Dependencias (npm audit, 2026-10-20)
+## Dependencias (npm audit, revisado el 2026-10-29)
+
+El CI ejecuta `npm audit --omit=dev --audit-level=high` en cada cambio. El 29-10 detectó tres avisos nuevos
+(body-parser, multer, zod) y se corrigieron el mismo día (ver CHANGELOG 2.3.1).
+
 
 | Proyecto | Resultado | Valoración |
 |---|---|---|
-| Backend | **0 vulnerabilidades** | `nodemon` reemplazado por `node --watch` (nativo); `uuid` forzado a 11.1.1 con `overrides` (probado: reportes Excel OK) |
+| Backend | **0 vulnerabilidades** (29-10) | `nodemon` reemplazado por `node --watch` (nativo); `uuid` forzado a 11.1.1 con `overrides`; body-parser 1.20.9, multer 2.5.0 y zod 4.6.7 |
 | Frontend | 5 altas y 2 moderadas, todas dentro de `tailwindcss` 3 (`braces`, `micromatch`, `chokidar`, `fast-glob`, `postcss-selector-parser`) | Solo herramientas de **compilación**: no se incluyen en la web publicada (`dist/`). `braces` no tiene versión corregida publicada; se resuelve migrando a Tailwind 4 (cambio mayor pendiente) |
 
 Versiones mayores disponibles no adoptadas (React 19, Express 5, Vite 8, zod 4, etc.): las versiones en uso

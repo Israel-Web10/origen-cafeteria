@@ -138,7 +138,7 @@ const orderCreate = z.object({
   observations: optionalText(500),
   displayCurrency: z.string().length(3).optional(),
   locale: locale.optional(),
-  acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Debes aceptar las condiciones de pedido' }) }),
+  acceptTerms: z.literal(true, { message: 'Debes aceptar las condiciones de pedido' }),
 }).strict();
 const orderQuote = z.object({
   deliveryType: z.enum(['pickup', 'delivery']).default('pickup'),

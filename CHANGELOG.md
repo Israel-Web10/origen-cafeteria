@@ -8,6 +8,14 @@ La API pública está versionada en la URL (`/api/v1`). `/api` es un alias de la
 vigente para no romper clientes antiguos. Un cambio incompatible se publicará como `/api/v2`
 manteniendo `/api/v1` durante la transición y se anunciará aquí.
 
+## [2.3.1] — 2026-10-29
+
+### Seguridad
+- Detectado por la nueva integración continua: tres avisos de severidad alta publicados después de la
+  revisión del 20-10. `body-parser` 1.20.9 y `multer` 2.5.0 (denegación de servicio) y `zod` 4.6.7
+  (consumo de memoria con listas enormes; no había corrección en la rama 3). Migración a zod 4 sin cambios
+  de comportamiento: 41/41 pruebas y mensajes de validación propios intactos. `npm audit`: 0 vulnerabilidades.
+
 ## [2.3.0] — 2026-10-29
 
 ### Añadido
