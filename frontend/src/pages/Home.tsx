@@ -13,6 +13,7 @@ import { Carousel } from '../components/Carousel';
 import { CoffeeJourney } from '../components/CoffeeJourney';
 import { HowToOrder } from '../components/HowToOrder';
 import { Lightbox } from '../components/Lightbox';
+import { FloatingBeans, Magnetic, RevealText, Tilt3D, VelocityMarquee } from '../components/Motion3D';
 import { CacaoPod, CoffeeBean, ChocolateSquare } from '../components/Brand';
 import { useConfig, useCalmMotion } from '../context/ConfigContext';
 import { assetUrl } from '../services/api';
@@ -69,6 +70,12 @@ export function Home() {
       .catch(() => { setFailed(true); setFeatured([]); });
   }, []);
 
+  // Fotos de productos reales para la cinta (destacados + populares, sin repetir)
+  const marquee = [...(featured || []), ...popular]
+    .filter((p, i, a) => p.image_url && a.findIndex((q) => q.id === p.id) === i)
+    .slice(0, 12)
+    .map((p) => ({ src: assetUrl(p.image_url) ?? '', label: tr(p, i18n.language), to: `/producto/${p.slug}` }));
+
   const hours = parseHours(settings.opening_hours);
   const status = openStatus(hours, settings.timezone);
   const lang = i18n.language;
@@ -87,7 +94,7 @@ export function Home() {
       <section id="explorar" className="section pt-20 pb-10">
         <Reveal>
           <p className="eyebrow mb-2">{t('home.exploreEyebrow')}</p>
-          <h2 className="text-3xl md:text-5xl mb-8">{t('home.exploreTitle')}</h2>
+          <RevealText text={t('home.exploreTitle')} className="text-3xl md:text-5xl mb-8" />
         </Reveal>
         {failed && <p className="text-rose">{t('errors.network_error')}</p>}
         <motion.ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true }}>
@@ -95,6 +102,7 @@ export function Home() {
             const Art = CATEGORY_ART[i % CATEGORY_ART.length];
             return (
               <motion.li key={c.id} variants={staggerItem}>
+                <Tilt3D>
                 <Link to={`/carta/${c.slug}`} className="group relative block aspect-[4/5] rounded-card overflow-hidden bg-espresso shadow-soft">
                   {c.image_url
                     ? <img src={assetUrl(c.image_url)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-110 transition-transform duration-700" loading="lazy" />
@@ -105,15 +113,24 @@ export function Home() {
                     {c.product_count ? <p className="text-cream/60 text-xs mt-1">{t('home.productCount', { count: c.product_count })}</p> : null}
                   </div>
                 </Link>
+                </Tilt3D>
               </motion.li>
             );
           })}
         </motion.ul>
       </section>
 
+      {/* Cinta de la carta: se acelera y se inclina con la velocidad del scroll */}
+      {marquee.length >= 4 && (
+        <section className="py-6" aria-label={t('home.featuredTitle')}>
+          <VelocityMarquee items={marquee} label={t('home.featuredTitle')} />
+        </section>
+      )}
+
       {/* Destacados */}
-      <section className="section py-12">
-        <Reveal><p className="eyebrow mb-2">{t('home.featuredEyebrow')}</p><h2 className="text-3xl md:text-4xl mb-8">{t('home.featuredTitle')}</h2></Reveal>
+      <section className="section py-12 relative isolate">
+        <FloatingBeans />
+        <Reveal><p className="eyebrow mb-2">{t('home.featuredEyebrow')}</p><RevealText text={t('home.featuredTitle')} className="text-3xl md:text-4xl mb-8" /></Reveal>
         {featured === null ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)}</div>
         ) : featured.length ? (
@@ -144,7 +161,7 @@ export function Home() {
                   </li>
                 ))}
               </ul>
-              <Link to="/promociones" className="btn-gold mt-6 relative">{t('home.promoCta')}</Link>
+              <span className="block mt-6 relative"><Magnetic><Link to="/promociones" className="btn-gold">{t('home.promoCta')}</Link></Magnetic></span>
             </Reveal>
           </div>
         </section>
@@ -153,7 +170,7 @@ export function Home() {
       {/* Lo más pedido (datos reales de ventas de los últimos 90 días) */}
       {popular.length > 0 && (
         <section className="section py-12">
-          <Reveal><p className="eyebrow mb-2">{t('home.popularEyebrow')}</p><h2 className="text-3xl md:text-4xl mb-8">{t('home.popularTitle')}</h2></Reveal>
+          <Reveal><p className="eyebrow mb-2">{t('home.popularEyebrow')}</p><RevealText text={t('home.popularTitle')} className="text-3xl md:text-4xl mb-8" /></Reveal>
           <Carousel label={t('home.popularTitle')}>{popular.map((p) => <ProductCard key={p.id} product={p} />)}</Carousel>
         </section>
       )}
@@ -162,23 +179,27 @@ export function Home() {
 
       {/* Historia */}
       <section className="section py-16 grid md:grid-cols-2 gap-10 items-center">
-        <Reveal className="relative aspect-[4/3] rounded-card overflow-hidden shadow-lift">
-          {settings.story_poster_url && <img src={assetUrl(settings.story_poster_url)} alt="" className="w-full h-full object-cover" loading="lazy" />}
-          <div className="absolute inset-0 bg-gradient-to-tr from-espresso/60 to-transparent" />
-          <p className="absolute bottom-3 left-3 text-[11px] text-cream/70 bg-espresso/50 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</p>
+        <Reveal>
+          <Tilt3D max={6}>
+            <div className="relative aspect-[4/3] rounded-card overflow-hidden shadow-lift">
+              {settings.story_poster_url && <img src={assetUrl(settings.story_poster_url)} alt="" className="w-full h-full object-cover" loading="lazy" />}
+              <div className="absolute inset-0 bg-gradient-to-tr from-espresso/60 to-transparent" />
+              <p className="absolute bottom-3 left-3 text-[11px] text-cream/70 bg-espresso/50 px-2 py-0.5 rounded-full">{t('home.illustrativeShort')}</p>
+            </div>
+          </Tilt3D>
         </Reveal>
         <Reveal>
           <p className="eyebrow mb-2">{t('home.storyEyebrow')}</p>
-          <h2 className="text-3xl md:text-5xl mb-4">{t('home.storyTitle')}</h2>
+          <RevealText text={t('home.storyTitle')} className="text-3xl md:text-5xl mb-4" />
           <p className="text-charcoal/70 text-lg mb-6">{t('home.storyText')}</p>
-          <Link to="/historia" className="btn-outline">{t('home.ctaStory')}</Link>
+          <Magnetic><Link to="/historia" className="btn-outline">{t('home.ctaStory')}</Link></Magnetic>
         </Reveal>
       </section>
 
       {/* Galería del local (fotos subidas por el gerente) */}
       {gallery.length > 0 && (
         <section className="section py-12">
-          <Reveal><h2 className="text-3xl md:text-4xl mb-8">{t('home.galleryTitle')}</h2></Reveal>
+          <RevealText text={t('home.galleryTitle')} className="text-3xl md:text-4xl mb-8" />
           <Carousel label={t('home.galleryTitle')} itemClassName="w-[85%] sm:w-[48%] lg:w-[32%]">
             {gallery.map((img, i) => (
               <button key={img.id} type="button" onClick={() => setPhoto(i)} className="group relative block w-full aspect-[4/3] rounded-card overflow-hidden" aria-label={t('home.openPhoto', { name: img.alt_text || '' })}>
@@ -199,10 +220,10 @@ export function Home() {
             <span className={`badge mb-3 ${status.open ? 'bg-olive/15 text-olive' : 'bg-rose/10 text-rose'}`}>
               ● {status.open ? t('hours.openNow', { time: status.closesAt }) : status.opensAt ? t('hours.closedNow', { day: t(`days.${status.opensDay}`), time: status.opensAt }) : t('hours.closed')}
             </span>
-            <h2 className="text-3xl md:text-4xl mb-3">{t('home.visitTitle')}</h2>
+            <RevealText text={t('home.visitTitle')} className="text-3xl md:text-4xl mb-3" />
             <p className="text-charcoal/70 mb-6">{settings.address || t('visit.addressPending')}{settings.city ? ` · ${settings.city}` : ''}</p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/visitanos" className="btn-primary">{t('home.ctaVisit')}</Link>
+              <Magnetic><Link to="/visitanos" className="btn-primary">{t('home.ctaVisit')}</Link></Magnetic>
               <Link to="/seguimiento" className="btn-outline">{t('nav.track')}</Link>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useCalmMotion } from '../context/ConfigContext';
+import { Magnetic } from './Motion3D';
 
 const ICONS: Record<string, string[]> = {
   // Carta abierta
@@ -45,7 +46,7 @@ export function HowToOrder() {
           ))}
         </ol>
       </div>
-      <div className="text-center mt-10"><Link to="/carta" className="btn-primary">{t('home.how.cta')}</Link></div>
+      <div className="text-center mt-10"><Magnetic><Link to="/carta" className="btn-primary">{t('home.how.cta')}</Link></Magnetic></div>
     </section>
   );
 }

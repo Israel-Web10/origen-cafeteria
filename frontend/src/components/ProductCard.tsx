@@ -10,6 +10,7 @@ import { useConfig, useCalmMotion } from '../context/ConfigContext';
 import { tr } from '../lib/format';
 import { Modal } from './Modal';
 import { LogoMark } from './Brand';
+import { Tilt3D } from './Motion3D';
 
 export function PriceTag({ product, variant, size = 'md' }: { product: Product; variant?: Variant | null; size?: 'md' | 'lg' }) {
   const { money, displayMoney, activeRate } = useConfig();
@@ -62,6 +63,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <>
+      <Tilt3D className="h-full">
       <motion.article
         whileHover={calm ? undefined : { y: -6 }}
         transition={{ type: 'spring', stiffness: 300, damping: 22 }}
@@ -101,6 +103,7 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         </div>
       </motion.article>
+      </Tilt3D>
       <ProductQuickView product={product} open={quick} onClose={() => setQuick(false)} />
     </>
   );
