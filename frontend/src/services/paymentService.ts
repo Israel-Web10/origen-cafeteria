@@ -1,31 +1,27 @@
 import api from './api';
-import type { PaymentMethod, Payment } from '../types';
+import type { Payment, PaymentMethod, PaymentStatus, PaymentType } from '../types';
 
-export async function listPaymentMethods(): Promise<PaymentMethod[]> {
-  const { data } = await api.get<{ paymentMethods: PaymentMethod[] }>('/payments/methods');
-  return data.paymentMethods;
-}
+export const listMethods = (all = false) =>
+  api.get<{ paymentMethods: PaymentMethod[] }>('/payments/methods', { params: all ? { all: true } : {} }).then((r) => r.data.paymentMethods);
 
-export async function updatePaymentMethod(id: number, payload: Partial<PaymentMethod>): Promise<PaymentMethod> {
-  const { data } = await api.put<{ paymentMethod: PaymentMethod }>(`/payments/methods/${id}`, payload);
-  return data.paymentMethod;
-}
+export const saveMethod = (id: number, payload: Partial<PaymentMethod>) =>
+  api.put<{ paymentMethod: PaymentMethod }>(`/payments/methods/${id}`, payload).then((r) => r.data.paymentMethod);
 
-export async function listPayments(status?: string): Promise<Payment[]> {
-  const { data } = await api.get<{ payments: Payment[] }>('/payments', { params: { status } });
-  return data.payments;
-}
+export const listPayments = (params: { status?: PaymentStatus; method?: PaymentType; from?: string; to?: string; limit?: number; offset?: number }) =>
+  api.get<{ payments: Payment[]; total: number }>('/payments', { params }).then((r) => r.data);
 
-export async function uploadProof(orderId: number, file: File): Promise<Payment> {
+export function submitProof(orderId: number, data: { file?: File | null; reference?: string; token?: string }) {
   const form = new FormData();
-  form.append('proof', file);
-  const { data } = await api.post<{ payment: Payment }>(`/payments/${orderId}/proof`, form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return data.payment;
+  if (data.file) form.append('proof', data.file);
+  if (data.reference) form.append('reference', data.reference);
+  if (data.token) form.append('token', data.token);
+  return api.post<{ payment: Payment }>(`/payments/orders/${orderId}/proof`, form).then((r) => r.data.payment);
 }
 
-export async function updatePaymentStatus(id: number, status: 'verificado' | 'rechazado' | 'pendiente'): Promise<Payment> {
-  const { data } = await api.put<{ payment: Payment }>(`/payments/${id}/status`, { status });
-  return data.payment;
-}
+export const review = (id: number, payload: { decision: 'verificado' | 'rechazado'; reason?: string; cash_received_cents?: number }) =>
+  api.put<{ payment: Payment }>(`/payments/${id}/review`, payload).then((r) => r.data.payment);
+
+export const refund = (id: number, reason: string) => api.post(`/payments/${id}/refund`, { reason });
+
+export const cardTest = (orderId: number, outcome: 'approved' | 'declined', token?: string) =>
+  api.post<{ status: string; mode: 'test' }>(`/payments/orders/${orderId}/card-test`, { outcome, token }).then((r) => r.data);

@@ -1,0 +1,17 @@
+{
+  "name": "origen-cafeteria",
+  "private": true,
+  "version": "2.3.1",
+  "description": "ORIGEN — web de pedidos y panel de gestión para cafetería. Comandos de conveniencia para la raíz del proyecto.",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "doctor": "node scripts/setup.mjs --check",
+    "dev": "node scripts/dev.mjs",
+    "test": "npm --prefix backend test && npm --prefix frontend run build",
+    "check:secrets": "node scripts/check-secrets.mjs --all",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

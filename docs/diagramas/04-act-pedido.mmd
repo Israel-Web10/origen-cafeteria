@@ -1,0 +1,21 @@
+flowchart TD
+  I((" ")):::start --> A1["Explorar la carta"]:::cli
+  A1 --> A2["Elegir producto y variante"]:::cli --> A3["Agregar al carrito"]:::cli
+  A3 --> D1{"¿Agregar más?"}
+  D1 -- "Sí" --> A1
+  D1 -- "No" --> A4["Checkout: nombre, teléfono,<br/>recoger o entrega"]:::cli
+  A4 --> A5["Cotizar: precios, promociones<br/>y costo de envío"]:::sis
+  A5 --> A6["Elegir pago y aceptar condiciones"]:::cli --> A7["Enviar pedido"]:::cli
+  A7 --> D2{"¿Datos válidos<br/>y hay stock?"}
+  D2 -- "No" --> E1["Mostrar error claro<br/>(sin perder el carrito)"]:::sis --> A4
+  D2 -- "Sí" --> A8["Registrar pedido, número único<br/>y descontar stock e insumos"]:::sis
+  A8 --> D3{"Método de pago"}
+  D3 -- "Efectivo" --> P1["Paga al recoger o recibir"]:::cli
+  D3 -- "QR" --> P2["Paga en la app del banco<br/>y sube el comprobante"]:::cli
+  D3 -- "Tarjeta (prueba)" --> P3["Simulador aprueba<br/>o rechaza"]:::sis
+  P1 & P2 & P3 --> A9["Seguir el estado del pedido"]:::cli
+  A9 --> F(((" "))):::fin
+  classDef cli fill:#F6EFE4,stroke:#B98A3E,color:#2A1A12
+  classDef sis fill:#E7EEE3,stroke:#5E7A4F,color:#22331A
+  classDef start fill:#2A1A12,stroke:#2A1A12
+  classDef fin fill:#2A1A12,stroke:#2A1A12

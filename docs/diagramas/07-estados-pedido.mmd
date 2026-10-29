@@ -1,0 +1,16 @@
+stateDiagram-v2
+  direction LR
+  [*] --> pendiente: cliente envía
+  pendiente --> confirmado: personal confirma<br/>o pago QR verificado
+  confirmado --> en_preparacion
+  en_preparacion --> listo
+  listo --> entregado: recoge en el local
+  listo --> en_camino: entrega a domicilio
+  en_camino --> entregado
+  pendiente --> cancelado
+  confirmado --> cancelado
+  en_preparacion --> cancelado
+  listo --> cancelado
+  en_camino --> cancelado
+  entregado --> [*]
+  cancelado --> [*]: se repone el stock

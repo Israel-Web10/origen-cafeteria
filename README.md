@@ -1,157 +1,84 @@
-# ORIGEN — Sistema web de pedidos online para cafetería
+# ORIGEN — Plataforma de pedidos para cafetería
 
-Sistema completo de pedidos online para una cafetería artesanal, con
-frontend de cliente, panel de administración, API REST y base de datos
-relacional. Construido como una base sólida y funcional, no como un
-prototipo visual: el frontend consume datos reales de la API en cada
-pantalla — nada de productos, precios o configuración está hardcodeado.
+Web de pedidos con experiencia inmersiva, panel de gestión, inventario con recetas,
+analítica, reportes PDF/Excel, monedas de referencia y pagos verificados (QR / efectivo;
+tarjeta preparada en modo de pruebas). Español, inglés y francés.
+
+> **Estado:** listo para un piloto controlado. Antes de operar con clientes reales revisa
+> la [lista de producción](docs/INFORME-FINAL.md#lista-de-comprobación-para-producción):
+> hay puntos que dependen del negocio (textos legales revisados, QR oficial, dominio, hosting).
 
 ## Qué incluye
 
-- **Cliente**: menú dinámico por categorías, carrito persistente, checkout
-  con recojo en tienda o delivery, pago por QR/efectivo (tarjeta preparada
-  para integrarse), tickets/comprobantes descargables e imprimibles,
-  seguimiento de pedido por número (con o sin cuenta), historial de
-  pedidos para usuarios registrados.
-- **Administración** (`/admin`): dashboard con ventas del día/semana/mes,
-  productos más vendidos y métodos de pago más usados; CRUD completo de
-  productos y categorías; gestión de pedidos con cambio de estado; gestión
-  de pagos con verificación/rechazo de comprobantes; gestión de imágenes
-  (logo, banners, galería, QR de pago) subidas directamente desde la web;
-  configuración general del negocio (ubicación, horarios, contacto, redes,
-  costo de delivery, pedido mínimo).
-- **Backend**: API REST en Express con autenticación JWT, roles
-  cliente/admin, validación y cálculo de precios en servidor (nunca se
-  confía en el precio que manda el navegador), transacciones para la
-  creación de pedidos, subida de imágenes con validación de tipo/tamaño.
-- **Base de datos**: MySQL, normalizada, con claves foráneas e índices
-  (ver `docs/DATABASE.md`).
+| Área | Resumen |
+|---|---|
+| Cliente | Portada con escena 3D (perspectiva CSS + video + parallax), carta con búsqueda/filtros/orden, detalle con variantes, carrito lateral, checkout con totales calculados por el servidor, seguimiento seguro, historial, perfil con descarga/eliminación de datos |
+| Pagos | QR oficial del negocio con referencia y comprobante privado → verificación manual auditada; efectivo con importe recibido y cambio; tarjeta: solo simulador de pruebas (bloqueado en producción) |
+| Panel | Dashboard (periodos diario→anual, comparación hasta la fecha, media móvil, anomalías, ABC, proyección marcada como estimación), pedidos, pagos, productos/variantes/recetas, categorías, promociones, inventario (insumos, movimientos inmutables, alertas, proveedores), reportes PDF/Excel, clientes, imágenes, contenido editable con borrador y publicación, monedas y tipos de cambio manuales, configuración, usuarios/roles, auditoría |
+| Seguridad | Roles CLIENTE / GERENTE / ADMINISTRADOR verificados en backend, JWT revocable, bloqueo por intentos, rate limiting, validación estricta (zod), subida de archivos validada por firma binaria, comprobantes privados, Helmet/CSP, idempotencia, SQL parametrizado |
+| Datos | PostgreSQL 17, migraciones versionadas, importes en centavos enteros, zona horaria del negocio, backups/restauración probados |
 
 ## Tecnologías
 
 | Capa | Stack |
 |---|---|
-| Frontend | React 18, Vite, TypeScript, React Router, Tailwind CSS |
-| Backend | Node.js, Express, JWT, bcrypt, express-validator, multer |
-| Base de datos | MySQL 8 |
+| Frontend | React 18, TypeScript, Vite 6, React Router 7, Tailwind CSS 3, framer-motion, i18next |
+| Backend | Node.js 20+, Express 4, zod, pg, PDFKit, ExcelJS, helmet, express-rate-limit |
+| Base de datos | PostgreSQL 17 (compatible 14+) |
+| Pruebas | node:test + supertest (backend), comprobación de i18n, lint, build |
 
-## Arquitectura
+## Inicio rápido (desarrollo)
 
-```
-React (Vite) ──HTTP/JSON──> Express API ──mysql2──> MySQL
-                                  │
-                                  └──> /uploads (imágenes, almacenamiento
-                                       local en dev; preparado para S3/
-                                       Cloudinary en producción)
-```
-
-El frontend nunca contiene datos de negocio fijos: todo (productos,
-categorías, precios, configuración de la cafetería, métodos de pago,
-zonas de delivery) se obtiene de la API en tiempo de ejecución.
-
-## Estructura del proyecto
-
-```
-origen-cafeteria/
-├── frontend/                  React + TypeScript + Tailwind
-│   ├── src/
-│   │   ├── components/        Navbar, ProductCard, Modal, etc.
-│   │   ├── pages/             Home, Menu, Checkout, ... y pages/admin/
-│   │   ├── layouts/           PublicLayout, AdminLayout
-│   │   ├── context/           Auth, Cart, Toast
-│   │   ├── services/          Capa de acceso a la API (axios)
-│   │   └── types/             Tipos TypeScript compartidos
-│   └── .env.example
-├── backend/                    Node + Express
-│   ├── src/
-│   │   ├── controllers/       Lógica de cada endpoint
-│   │   ├── routes/            Definición de rutas + permisos
-│   │   ├── models/            Acceso a datos (SQL parametrizado)
-│   │   ├── middleware/        auth (JWT/roles), upload, errores
-│   │   └── config/            Conexión a MySQL
-│   ├── scripts/test_e2e.py    Suite de pruebas end-to-end reales
-│   └── .env.example
-├── database/
-│   ├── schema.sql             Estructura completa
-│   └── seed.sql                Datos de desarrollo
-└── docs/
-    ├── API.md                 Referencia de todos los endpoints
-    ├── DATABASE.md             Modelo de datos y flujos
-    └── INSTALLATION.md         Instalación paso a paso desde cero
-```
-
-## Instalación rápida
-
-Ver **`docs/INSTALLATION.md`** para la guía completa. Resumen:
+Requisitos: Node 20+, PostgreSQL 14+ instalado y encendido. Desde la carpeta del proyecto:
 
 ```bash
-# 1. Base de datos
-mysql -u root -p < database/schema.sql
-mysql -u root -p origen_cafeteria < database/seed.sql
-
-# 2. Backend
-cd backend
-npm install
-cp .env.example .env   # y edita DB_USER/DB_PASSWORD/JWT_SECRET
-npm run dev
-
-# 3. Frontend (en otra terminal)
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
+npm run setup     # instala todo, crea backend/.env, la base, las tablas y (si quieres) datos de demostración
+npm run dev       # arranca API y web juntas → http://localhost:5173
+npm run doctor    # si algo falla: revisa y explica qué falta, sin cambiar nada
 ```
 
-Abre `http://localhost:5173`.
+`setup` es un asistente: si el usuario de la base no existe o la contraseña no coincide, ofrece usar el
+usuario `postgres` de tu instalación y te pide su contraseña (no se muestra en pantalla). En VS Code también
+están como tareas: *Terminal → Ejecutar tarea… → ORIGEN: …*
 
-## Credenciales de desarrollo
+Cuentas de prueba (solo desarrollo, definidas en `backend/scripts/seed-dev.js`): administrador,
+gerente y cliente con correos `@origen.dev`. En producción se crea el primer administrador con
+`npm run create-admin` (sin contraseñas predeterminadas).
 
-| Rol | Correo | Contraseña |
+Guía paso a paso para personas no técnicas: **[docs/INSTALACION.md](docs/INSTALACION.md)**.
+
+## Comandos útiles
+
+| Dónde | Comando | Qué hace |
 |---|---|---|
-| Administrador | `admin@origen.dev` | `DevAdmin123!` |
-| Cliente | `cliente@origen.dev` | `DevClient123!` |
+| backend | `npm test` | 41 pruebas (unitarias + integración HTTP contra una base `_test`) |
+| backend | `npm run lint` | ESLint |
+| backend | `npm run migrate:status` | Estado de migraciones |
+| backend | `npm run create-admin -- --email ...` | Primer administrador de producción |
+| backend | `scripts/backup.ps1` / `backup.sh` | Respaldo con verificación y rotación |
+| frontend | `npm run build` | Verifica traducciones + TypeScript + build |
+| frontend | `npm run lint` / `check:i18n` | ESLint / integridad de es-en-fr |
 
-Estas cuentas vienen del `seed.sql` únicamente para poder probar el
-sistema — cámbialas antes de usar esto en producción.
+## Documentación
 
-## Pruebas
-
-```bash
-cd backend
-npm run dev                       # backend corriendo
-python3 scripts/test_e2e.py       # en otra terminal
-```
-
-Ejecuta ~76 pruebas HTTP reales (no mocks) contra el backend y MySQL:
-registro/login, control de acceso por rol, creación de pedidos como
-invitado y como cliente, subida y verificación de comprobantes QR, flujo
-completo de estados del pedido, CRUD de productos/categorías,
-configuración, zonas de delivery e imágenes.
-
-## Servicios externos no incluidos
-
-Estos requieren cuentas/credenciales que no están disponibles en este
-entorno de desarrollo. El código ya está preparado para conectarlos —
-ver la tabla al final de `docs/API.md` para el detalle de qué falta:
-
-- Pasarela de pago con tarjeta real (actualmente la opción "tarjeta"
-  aparece desactivada, lista para integrarse).
-- Almacenamiento de imágenes en la nube (actualmente local en `/uploads`;
-  recomendación y notas de migración en `docs/API.md`).
-- Facturación fiscal electrónica de Bolivia (no existe una API genérica
-  pública; requiere contratar un proveedor autorizado).
-- Mapa interactivo embebido (actualmente se muestra la dirección con un
-  enlace "Cómo llegar" a Google Maps; hay una variable reservada para una
-  API key de Google Maps si se quiere embeber un mapa real).
-
-## Seguridad
-
-- Contraseñas con bcrypt (nunca en texto plano, nunca devueltas por la API).
-- JWT con expiración configurable.
-- Rutas administrativas protegidas tanto en el backend (middleware de
-  rol) como en el frontend (`ProtectedRoute`) — un cliente no puede
-  acceder al panel admin ni escribiendo la URL directamente.
-- Todos los precios y totales se recalculan en el servidor.
-- No se almacenan números completos de tarjeta en ningún lugar.
-- Subida de archivos validada por tipo MIME y tamaño máximo.
-- Sin secretos reales incluidos en el repositorio — solo `.env.example`.
+| Documento | Contenido |
+|---|---|
+| [docs/AUDITORIA.md](docs/AUDITORIA.md) | Fase 1: diagnóstico del proyecto original |
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Fase 2: decisiones técnicas y su justificación |
+| [docs/GUIA-VSCODE.md](docs/GUIA-VSCODE.md) | Ejecutar web y base de datos desde Visual Studio Code, comando por comando |
+| [docs/INSTALACION.md](docs/INSTALACION.md) | Instalación desde cero (Windows / Linux) |
+| [docs/BASE-DE-DATOS.md](docs/BASE-DE-DATOS.md) | Esquema, roles, migraciones, backups, restauración, actualización |
+| [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) | Hosting, dominio, HTTPS, variables, rollback, costos |
+| [docs/SEGURIDAD.md](docs/SEGURIDAD.md) | Riesgos, medidas aplicadas y riesgos residuales |
+| [docs/PRUEBAS.md](docs/PRUEBAS.md) | Pruebas ejecutadas y resultados reales (incluida carga) |
+| [docs/API.md](docs/API.md) | Referencia de endpoints |
+| [docs/LEGAL.md](docs/LEGAL.md) | Privacidad, cookies, consumo y facturación: qué revisar con profesionales |
+| [docs/RECURSOS-Y-LICENCIAS.md](docs/RECURSOS-Y-LICENCIAS.md) | Imágenes, videos y dependencias: origen y licencias |
+| [docs/MANUAL-GERENTE.md](docs/MANUAL-GERENTE.md) | Uso diario del panel |
+| [docs/DESPLIEGUE-VERCEL.md](docs/DESPLIEGUE-VERCEL.md) | Vercel paso a paso, si hace falta Azure, y la base de datos al entregar |
+| [docs/ESCALABILIDAD.md](docs/ESCALABILIDAD.md) | Caché, multiproceso, límites en Nginx y prueba con 1000 conexiones |
+| [docs/IA-Y-COSTOS.md](docs/IA-Y-COSTOS.md) | Claves seguras, cómo evitar facturas por APIs y si conviene IA en el panel |
+| [CHANGELOG.md](CHANGELOG.md) | Versiones y cambios (versionado semántico, API `/api/v1`) |
+| [docs/diagramas/](docs/diagramas/) | Diagramas UML (casos de uso, actividades, secuencia, estados, clases, ER, componentes, despliegue) |
+| [docs/INFORME-FINAL.md](docs/INFORME-FINAL.md) | Informe por fases y lista de producción |
+| [docs/investigacion/](docs/investigacion/) | Precios y condiciones verificados (hosting, dominio, pagos, tipo de cambio, legal) |

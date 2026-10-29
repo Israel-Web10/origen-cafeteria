@@ -1,0 +1,15 @@
+flowchart TD
+  A["Desarrollador guarda un cambio (commit)"] --> H{"Gancho pre-commit:<br/>¿hay claves en el código?"}
+  H -- "Sí" --> X["Commit bloqueado:<br/>quitar la clave"]
+  X --> A
+  H -- "No" --> P["git push a GitHub"]
+  subgraph GA["GitHub Actions (en paralelo)"]
+    direction LR
+    J1["Backend<br/>lint · 41 pruebas con PostgreSQL real<br/>npm audit"]
+    J2["Frontend<br/>traducciones · tipos · lint · build"]
+    J3["Escaneo de secretos"]
+  end
+  P --> J1 & J2 & J3
+  J1 & J2 & J3 --> D{"¿Todo en verde?"}
+  D -- "No (✗ rojo)" --> FIX["Corregir y volver a probar"] --> A
+  D -- "Sí (✔ verde)" --> DEP["Desplegar"] --> SM["npm run smoke en la web publicada"]

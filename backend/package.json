@@ -1,25 +1,48 @@
 {
   "name": "origen-backend",
-  "version": "1.0.0",
-  "description": "API REST para ORIGEN Cafetería",
+  "version": "2.3.1",
+  "description": "API REST de ORIGEN (Express + PostgreSQL)",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node src/cluster.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node scripts/migrate.js",
+    "migrate:status": "node scripts/migrate.js --status",
+    "seed:reference": "node scripts/seed-reference.js",
+    "seed:dev": "node scripts/seed-dev.js",
+    "setup": "npm run migrate && npm run seed:reference",
+    "create-admin": "node scripts/create-admin.js",
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "lint": "eslint src scripts tests"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1153.0",
     "bcryptjs": "^2.4.3",
+    "compression": "^1.8.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-validator": "^7.1.0",
+    "dotenv": "^16.6.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.22.3",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
-    "multer": "^2.2.0",
-    "mysql2": "^3.11.0"
+    "morgan": "^1.12.1",
+    "multer": "^2.4.0",
+    "pdfkit": "^0.15.2",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^15.15.0",
+    "supertest": "^7.3.1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

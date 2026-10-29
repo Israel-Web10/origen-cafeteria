@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1130" viewBox="0 0 1180 1130" font-family="Segoe UI, sans-serif">
+  <defs>
+    <marker id="open" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" orient="auto"><path d="M1,1 L11,6 L1,11" fill="none" stroke="#5B4636" stroke-width="1.6"/></marker>
+    <marker id="tri" viewBox="0 0 16 16" refX="15" refY="8" markerWidth="16" markerHeight="16" orient="auto"><path d="M1,1 L15,8 L1,15 z" fill="#fff" stroke="#2A1A12" stroke-width="1.6"/></marker>
+  </defs>
+  <rect width="1180" height="1130" fill="#fff"/>
+  <rect x="270" y="12" width="860" height="1102" rx="10" fill="#FBF8F3" stroke="#B98A3E" stroke-width="2"/>
+  <text x="700" y="38" text-anchor="middle" font-size="19" font-weight="700" fill="#2A1A12">Sistema ORIGEN — panel de gestión</text>
+  <line x1="136" y1="448" x2="447.3" y2="150.7" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="448" x2="438.2" y2="249.1" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="448" x2="407.8" y2="345.9" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="448" x2="328.1" y2="432.8" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="448" x2="375.0" y2="500.0" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="448" x2="424.3" y2="592.2" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="448" x2="445.8" y2="690.4" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="448" x2="452.1" y2="789.1" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="958" x2="330.8" y2="953.6" stroke="#5B4636" stroke-width="1.6"/><line x1="136" y1="958" x2="385.3" y2="1022.8" stroke="#5B4636" stroke-width="1.6"/><line x1="740.0" y1="110.0" x2="665.0" y2="110.0" stroke="#5B4636" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#open)"/>
+  <rect x="664.5" y="97" width="76" height="22" rx="4" fill="#fff" opacity="0.92"/>
+  <text x="702.5" y="113" text-anchor="middle" font-size="14" font-style="italic" fill="#5B4636">«extend»</text><line x1="740.0" y1="525.0" x2="650.0" y2="525.0" stroke="#5B4636" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#open)"/>
+  <rect x="657" y="512" width="76" height="22" rx="4" fill="#fff" opacity="0.92"/>
+  <text x="695" y="528" text-anchor="middle" font-size="14" font-style="italic" fill="#5B4636">«extend»</text><line x1="110" y1="910" x2="110" y2="582" stroke="#2A1A12" stroke-width="2" marker-end="url(#tri)"/>
+  <text x="124" y="755" font-size="13" fill="#7A6E62"><tspan x="124">generalización:</tspan><tspan x="124" dy="17">puede todo lo</tspan><tspan x="124" dy="17">del gerente</tspan></text><ellipse cx="490" cy="110" rx="175" ry="42" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="116" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Gestionar pedidos</tspan><tspan x="490" dy="19">(cambiar estado, cancelar)</tspan></text><ellipse cx="490" cy="215" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="221" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="0">Verificar comprobante QR</tspan></text><ellipse cx="490" cy="315" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="321" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Cobrar en efectivo</tspan><tspan x="490" dy="19">(calcula el cambio)</tspan></text><ellipse cx="490" cy="420" rx="170" ry="42" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="426" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Gestionar carta,</tspan><tspan x="490" dy="19">variantes y promociones</tspan></text><ellipse cx="490" cy="525" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="531" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Gestionar inventario</tspan><tspan x="490" dy="19">y recetas</tspan></text><ellipse cx="490" cy="625" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="631" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Ver panel y</tspan><tspan x="490" dy="19">recomendaciones</tspan></text><ellipse cx="490" cy="725" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="731" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Generar reportes</tspan><tspan x="490" dy="19">PDF / Excel</tspan></text><ellipse cx="490" cy="830" rx="170" ry="42" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="836" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Configurar negocio,</tspan><tspan x="490" dy="19">marca y textos legales</tspan></text><ellipse cx="490" cy="950" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="956" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="-9">Gestionar usuarios</tspan><tspan x="490" dy="19">y roles</tspan></text><ellipse cx="490" cy="1050" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="490" y="1056" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="490" dy="0">Consultar auditoría</tspan></text><ellipse cx="900" cy="110" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="900" y="116" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="900" dy="0">Registrar reembolso</tspan></text><ellipse cx="900" cy="525" rx="160" ry="36" fill="#F6EFE4" stroke="#B98A3E" stroke-width="2"/>
+  <text x="900" y="531" text-anchor="middle" font-size="16" fill="#2A1A12"><tspan x="900" dy="-9">Recibir alerta de</tspan><tspan x="900" dy="19">stock bajo</tspan></text><g stroke="#2A1A12" stroke-width="2.4" fill="none">
+    <circle cx="110" cy="418" r="15" fill="#fff"/>
+    <line x1="110" y1="433" x2="110" y2="475"/>
+    <line x1="86" y1="448" x2="134" y2="448"/>
+    <line x1="110" y1="475" x2="90" y2="508"/>
+    <line x1="110" y1="475" x2="130" y2="508"/>
+  </g>
+  <text x="110" y="534" text-anchor="middle" font-size="17" font-weight="600" fill="#2A1A12">Gerente</text>
+  <g stroke="#2A1A12" stroke-width="2.4" fill="none">
+    <circle cx="110" cy="928" r="15" fill="#fff"/>
+    <line x1="110" y1="943" x2="110" y2="985"/>
+    <line x1="86" y1="958" x2="134" y2="958"/>
+    <line x1="110" y1="985" x2="90" y2="1018"/>
+    <line x1="110" y1="985" x2="130" y2="1018"/>
+  </g>
+  <text x="110" y="1044" text-anchor="middle" font-size="17" font-weight="600" fill="#2A1A12">Administrador</text>
+  </svg>

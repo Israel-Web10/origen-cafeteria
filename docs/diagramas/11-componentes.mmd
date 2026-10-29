@@ -1,0 +1,18 @@
+flowchart TB
+  subgraph NAV["Navegador (celular o PC)"]
+    WEB["Web pública<br/>React + TypeScript + Framer Motion"]
+    ADM["Panel del gerente<br/>(se descarga solo al entrar)"]
+  end
+  subgraph EDGE["Entrada"]
+    NG["CDN / Nginx<br/>HTTPS · cabeceras · límites por IP"]
+  end
+  subgraph API["API (Node.js + Express)"]
+    MW["Middleware<br/>helmet · CORS · límites · micro-caché · JWT · zod"]
+    RT["Rutas<br/>auth · catálogo · pedidos · pagos · inventario<br/>analítica · reportes · contenido · usuarios"]
+    SV["Servicios (reglas de negocio)<br/>precios · stock · pagos · analítica · reportes PDF/Excel"]
+    DA["Acceso a datos<br/>pg pool · consultas parametrizadas"]
+  end
+  DB[("PostgreSQL<br/>24 tablas · migraciones")]
+  ST[("Archivos<br/>disco local o R2 / S3")]
+  WEB & ADM --> NG --> MW --> RT --> SV --> DA --> DB
+  SV --> ST

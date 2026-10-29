@@ -1,0 +1,17 @@
+flowchart TD
+  I((" ")):::start --> C1["Cliente sube la foto<br/>del comprobante"]:::cli
+  C1 --> S1["Validar el archivo por su contenido<br/>(JPG/PNG/WEBP, máx. 5 MB)"]:::sis
+  S1 --> D0{"¿Archivo válido?"}
+  D0 -- "No" --> S0["Rechazar la subida<br/>con un mensaje claro"]:::sis --> C1
+  D0 -- "Sí" --> S2["Guardar en zona privada;<br/>pago → en verificación"]:::sis
+  S2 --> G1["Gerente abre el comprobante<br/>en el panel"]:::ger
+  G1 --> G2["Contrasta con el extracto<br/>o la app del banco"]:::ger
+  G2 --> D1{"¿El dinero llegó?"}
+  D1 -- "Sí" --> S3["Pago verificado y pedido confirmado;<br/>queda quién y cuándo"]:::sis
+  D1 -- "No" --> S4["Pago rechazado con motivo"]:::sis
+  S3 & S4 --> S5["Registrar en auditoría"]:::sis --> F(((" "))):::fin
+  classDef cli fill:#F6EFE4,stroke:#B98A3E,color:#2A1A12
+  classDef sis fill:#E7EEE3,stroke:#5E7A4F,color:#22331A
+  classDef ger fill:#E8E1F0,stroke:#6B5A8A,color:#2A2140
+  classDef start fill:#2A1A12,stroke:#2A1A12
+  classDef fin fill:#2A1A12,stroke:#2A1A12

@@ -1,0 +1,17 @@
+{
+  // Terminal → Ejecutar tarea… (o Ctrl+Shift+B para la tarea por defecto)
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ORIGEN: iniciar web y API",
+      "type": "shell",
+      "command": "npm run dev",
+      "group": { "kind": "build", "isDefault": true },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    { "label": "ORIGEN: instalar / reparar (setup)", "type": "shell", "command": "npm run setup", "problemMatcher": [] },
+    { "label": "ORIGEN: diagnóstico (doctor)", "type": "shell", "command": "npm run doctor", "problemMatcher": [] },
+    { "label": "ORIGEN: pruebas", "type": "shell", "command": "npm test", "problemMatcher": [] }
+  ]
+}

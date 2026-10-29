@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  actor C as Cliente
+  participant W as Web (React)
+  participant A as API (Express)
+  participant V as Validación (zod)
+  participant S as Servicio de pedidos
+  participant DB as PostgreSQL
+  C->>W: Confirma el pedido
+  W->>A: POST /api/v1/orders + Idempotency-Key
+  A->>A: Límite de pedidos por IP
+  A->>V: Validar cuerpo (campos desconocidos = error)
+  V-->>A: Datos limpios y tipados
+  A->>S: Crear pedido
+  S->>DB: BEGIN
+  S->>DB: ¿Ya existe un pedido con esa clave?
+  S->>DB: Bloquear productos (FOR UPDATE, por id)
+  S->>S: Calcular precios, promociones y envío
+  S->>DB: INSERT pedido y líneas
+  S->>DB: Descontar stock e insumos (movimientos)
+  S->>DB: COMMIT
+  S-->>A: Pedido + token de seguimiento
+  A-->>W: 201 Created
+  W-->>C: Número de pedido y enlace de seguimiento
+  alt Datos inválidos o sin stock
+    A-->>W: 400 / 409 con código de error (ROLLBACK)
+    W-->>C: Mensaje claro en su idioma
+  end

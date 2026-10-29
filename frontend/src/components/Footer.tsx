@@ -1,77 +1,96 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import type { Settings } from '../types';
-import * as settingsService from '../services/settingsService';
+import { useTranslation } from 'react-i18next';
+import { useConfig } from '../context/ConfigContext';
+import { Logo } from './Brand';
+import { DAYS, parseHours } from '../lib/hours';
+import { openCookiePreferences } from './CookieBanner';
+
+const safeUrl = (u?: string) => (u && /^https:\/\//.test(u) ? u : undefined);
 
 export function Footer() {
-  const [settings, setSettings] = useState<Settings>({});
-
-  useEffect(() => {
-    settingsService
-      .getSettings()
-      .then((data) => setSettings(data.settings))
-      .catch(() => {});
-  }, []);
-
-  const cafeName = settings.cafe_name || 'ORIGEN';
+  const { t } = useTranslation();
+  const { settings, liteMode, setLiteMode } = useConfig();
+  const hours = parseHours(settings.opening_hours);
+  const name = settings.business_name || 'ORIGEN';
+  const socials = [
+    ['Instagram', safeUrl(settings.social_instagram)],
+    ['Facebook', safeUrl(settings.social_facebook)],
+    ['TikTok', safeUrl(settings.social_tiktok)],
+  ].filter(([, u]) => u) as [string, string][];
 
   return (
-    <footer id="contacto" className="bg-espresso text-cream/80 mt-24">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="bg-espresso text-cream/80 mt-24 relative overflow-hidden">
+      <div className="absolute inset-0 grain opacity-60 pointer-events-none" aria-hidden />
+      <div className="section relative py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <h4 className="font-display text-2xl text-cream mb-2">{cafeName}</h4>
-          {settings.cafe_slogan && <p className="text-sm text-cream/60">{settings.cafe_slogan}</p>}
+          <Logo light />
+          {settings.slogan && <p className="text-sm text-cream/60 mt-3">{settings.slogan}</p>}
+          {socials.length > 0 && (
+            <ul className="flex gap-3 mt-5 text-sm">
+              {socials.map(([label, url]) => (
+                <li key={label}><a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-gold-light underline-offset-4 hover:underline">{label}</a></li>
+              ))}
+            </ul>
+          )}
         </div>
 
-        <div>
-          <h5 className="text-xs font-semibold uppercase tracking-wider text-gold mb-3">Navegación</h5>
+        <nav aria-label={t('footer.explore')}>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gold-light mb-3 font-body">{t('footer.explore')}</h2>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="hover:text-cream">Inicio</Link></li>
-            <li><Link to="/menu" className="hover:text-cream">Menú</Link></li>
-            <li><Link to="/seguimiento" className="hover:text-cream">Seguir pedido</Link></li>
-            <li><Link to="/login" className="hover:text-cream">Iniciar sesión</Link></li>
+            {[['/carta', 'nav.menu'], ['/promociones', 'nav.promotions'], ['/historia', 'nav.story'], ['/la-cafeteria', 'nav.cafe'],
+              ['/visitanos', 'nav.visit'], ['/seguimiento', 'nav.track'], ['/preguntas-frecuentes', 'nav.faq']].map(([to, key]) => (
+              <li key={to}><Link to={to} className="hover:text-cream">{t(key)}</Link></li>
+            ))}
           </ul>
-        </div>
+        </nav>
 
-        <div id="ubicacion">
-          <h5 className="text-xs font-semibold uppercase tracking-wider text-gold mb-3">Ubicación</h5>
-          <ul className="space-y-2 text-sm text-cream/70">
-            {settings.address && <li>{settings.address}</li>}
-            {settings.opening_hours && <li>Horarios de atención disponibles en la tienda</li>}
-            {settings.gmaps_link && (
-              <li>
-                <a href={settings.gmaps_link} target="_blank" rel="noreferrer" className="text-gold hover:text-gold-light">
-                  Cómo llegar →
-                </a>
-              </li>
-            )}
-          </ul>
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gold-light mb-3 font-body">{t('footer.hours')}</h2>
+          {hours ? (
+            <dl className="text-sm space-y-1">
+              {DAYS.map((d) => (
+                <div key={d} className="flex justify-between gap-4">
+                  <dt className="text-cream/60">{t(`days.${d}`)}</dt>
+                  <dd>{hours[d].length ? hours[d].map(([a, b]) => `${a}–${b}`).join(', ') : t('hours.closed')}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : <p className="text-sm text-cream/60">{t('hours.notConfigured')}</p>}
         </div>
 
         <div>
-          <h5 className="text-xs font-semibold uppercase tracking-wider text-gold mb-3">Contacto</h5>
-          <ul className="space-y-2 text-sm text-cream/70">
-            {settings.phone && <li>Tel: {settings.phone}</li>}
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gold-light mb-3 font-body">{t('footer.contact')}</h2>
+          <ul className="space-y-2 text-sm">
+            {settings.address && <li>{settings.address}{settings.city ? `, ${settings.city}` : ''}</li>}
+            {settings.phone && <li><a href={`tel:${settings.phone.replace(/[^\d+]/g, '')}`} className="hover:text-cream">{settings.phone}</a></li>}
             {settings.whatsapp && (
-              <li>
-                <a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="hover:text-cream">
-                  WhatsApp: {settings.whatsapp}
-                </a>
-              </li>
+              <li><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-cream">WhatsApp</a></li>
             )}
-            <li className="flex gap-3 pt-1">
-              {settings.social_instagram && (
-                <a href={settings.social_instagram} target="_blank" rel="noreferrer" className="hover:text-gold">Instagram</a>
-              )}
-              {settings.social_facebook && (
-                <a href={settings.social_facebook} target="_blank" rel="noreferrer" className="hover:text-gold">Facebook</a>
-              )}
-            </li>
+            {settings.email && <li><a href={`mailto:${settings.email}`} className="hover:text-cream">{settings.email}</a></li>}
           </ul>
         </div>
       </div>
-      <div className="border-t border-cream/10 py-4 text-center text-xs text-cream/40">
-        © {new Date().getFullYear()} {cafeName}. Todos los derechos reservados.
+
+      <div className="relative border-t border-cream/10">
+        <div className="section py-5 flex flex-col md:flex-row gap-4 md:items-center justify-between text-xs text-cream/50">
+          <p>
+            © {new Date().getFullYear()} {settings.legal_name || name}
+            {settings.tax_id ? ` · NIT ${settings.tax_id}` : ''}
+          </p>
+          <ul className="flex flex-wrap gap-x-4 gap-y-2">
+            <li><Link to="/legal/privacy" className="hover:text-cream">{t('legal.privacy')}</Link></li>
+            <li><Link to="/legal/cookies" className="hover:text-cream">{t('legal.cookies')}</Link></li>
+            <li><Link to="/legal/terms" className="hover:text-cream">{t('legal.terms')}</Link></li>
+            <li><Link to="/legal/refunds" className="hover:text-cream">{t('legal.refunds')}</Link></li>
+            <li><button onClick={openCookiePreferences} className="hover:text-cream underline-offset-2 hover:underline">{t('cookies.preferences')}</button></li>
+            <li>
+              <label className="inline-flex items-center gap-2 cursor-pointer hover:text-cream">
+                <input type="checkbox" checked={liteMode} onChange={(e) => setLiteMode(e.target.checked)} className="accent-gold" />
+                {t('footer.liteMode')}
+              </label>
+            </li>
+          </ul>
+        </div>
       </div>
     </footer>
   );
