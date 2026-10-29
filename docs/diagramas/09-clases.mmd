@@ -1,0 +1,84 @@
+classDiagram
+  direction LR
+  class Usuario {
+    +id
+    +name, email
+    +role: client | manager | admin
+    +active
+    +token_version
+  }
+  class Categoria {
+    +id
+    +name, slug
+    +translations
+  }
+  class Producto {
+    +id
+    +name, slug
+    +price_cents
+    +cost_cents
+    +stock?
+    +is_featured, is_new
+  }
+  class Variante {
+    +name
+    +price_delta_cents
+  }
+  class Promocion {
+    +kind: percent | fixed
+    +value
+    +starts_at, ends_at
+  }
+  class Pedido {
+    +order_number
+    +delivery_type: pickup | delivery
+    +total_cents
+    +status
+    +payment_status
+    +public_token
+  }
+  class LineaPedido {
+    +product_name
+    +unit_price_cents
+    +quantity
+    +subtotal_cents
+  }
+  class Pago {
+    +method_type: qr | cash | card
+    +amount_cents
+    +status
+    +proof_storage_key
+    +verified_by, verified_at
+  }
+  class MetodoPago {
+    +type
+    +active
+    +config
+  }
+  class Insumo {
+    +name, unit
+    +quantity
+    +min_quantity
+  }
+  class ComponenteReceta {
+    +quantity
+  }
+  class MovimientoStock {
+    +type: entrada | venta | ajuste | merma | anulacion_venta | devolucion
+    +quantity_delta
+    +balance_after
+  }
+  Categoria "1" --> "*" Producto : agrupa
+  Producto "1" *-- "*" Variante : tiene
+  Promocion "*" --> "0..1" Producto : aplica a
+  Promocion "*" --> "0..1" Categoria : aplica a
+  Usuario "0..1" --> "*" Pedido : realiza
+  Pedido "1" *-- "1..*" LineaPedido : contiene
+  LineaPedido "*" --> "1" Producto : copia de
+  Pedido "1" --> "*" Pago : se paga con
+  Pedido "*" --> "1" MetodoPago : elige
+  Producto "1" *-- "*" ComponenteReceta : receta
+  ComponenteReceta "*" --> "1" Insumo : consume
+  MovimientoStock "*" --> "0..1" Insumo
+  MovimientoStock "*" --> "0..1" Producto
+  MovimientoStock "*" --> "0..1" Pedido : por venta

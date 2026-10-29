@@ -1,0 +1,10 @@
+flowchart LR
+  API[("API ORIGEN<br/>/api/v1<br/>misma lógica, mismos permisos")]
+  W1["Panel web responsive<br/>HOY: navegador del celular"]:::hoy --> API
+  W2["PWA instalable<br/>ícono, pantalla completa,<br/>avisos de nuevos pedidos"]:::rec --> API
+  W3["App en tiendas con Capacitor<br/>(envuelve la misma web)"]:::opt --> API
+  W4["App nativa (React Native)<br/>reescribir pantallas"]:::no --> API
+  classDef hoy fill:#E7EEE3,stroke:#5E7A4F,color:#22331A
+  classDef rec fill:#F6EFE4,stroke:#B98A3E,stroke-width:3px,color:#2A1A12
+  classDef opt fill:#FFFFFF,stroke:#9A8C7C,color:#2A1A12
+  classDef no fill:#F3E6E3,stroke:#B5523B,color:#5A1F12

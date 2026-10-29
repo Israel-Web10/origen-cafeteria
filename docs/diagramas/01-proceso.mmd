@@ -1,0 +1,21 @@
+flowchart TB
+  V1["Versión 1.0 · ago-2026 · web simple con MySQL"]:::old
+  subgraph A["Análisis"]
+    direction LR
+    F1["Fase 1 · Auditoría del<br/>proyecto original"] --> F2["Fase 2 · Arquitectura<br/>y decisiones"]
+  end
+  subgraph D["Diseño e implementación"]
+    direction LR
+    F3["Fase 3 · Diseño visual"] --> F4["Fase 4 · Funciones<br/>comerciales"] --> F5["Fase 5 · Panel de<br/>administración"]
+  end
+  subgraph Q["Calidad y entrega · v2.0 (20-oct)"]
+    direction LR
+    F6["Fase 6 · Seguridad"] --> F7["Fase 7 · Rendimiento"] --> F8["Fase 8 · Verificación<br/>y pruebas"] --> F9["Fase 9 · Despliegue y<br/>documentación"]
+  end
+  subgraph IT["Iteraciones posteriores"]
+    direction LR
+    I1["2.1 · 23-oct<br/>portada, recomendaciones,<br/>API v1, escalabilidad"] --> I2["2.2 · 24-oct<br/>fotos, videos, Vercel"] --> I3["2.3 · 29-oct<br/>instalación en un comando,<br/>CI, animaciones"] --> I4["2.3.1 · 29-oct<br/>avisos de seguridad<br/>detectados por el CI"]
+  end
+  V1 --> A --> D --> Q --> IT
+  F8 -. "fallos encontrados → se corrigen" .-> F6
+  classDef old fill:#E9E2D8,stroke:#9A8C7C,color:#5B5148

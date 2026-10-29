@@ -1,0 +1,11 @@
+stateDiagram-v2
+  direction LR
+  [*] --> pendiente
+  pendiente --> pagado: efectivo cobrado<br/>o tarjeta aprobada (prueba)
+  pendiente --> en_verificacion: comprobante QR subido
+  en_verificacion --> pagado: gerente verifica
+  en_verificacion --> rechazado: no coincide con el banco
+  pendiente --> rechazado: tarjeta rechazada (prueba)
+  pagado --> reembolsado: reembolso registrado
+  pagado --> [*]
+  reembolsado --> [*]

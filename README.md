@@ -79,5 +79,6 @@ Guía paso a paso para personas no técnicas: **[docs/INSTALACION.md](docs/INSTA
 | [docs/ESCALABILIDAD.md](docs/ESCALABILIDAD.md) | Caché, multiproceso, límites en Nginx y prueba con 1000 conexiones |
 | [docs/IA-Y-COSTOS.md](docs/IA-Y-COSTOS.md) | Claves seguras, cómo evitar facturas por APIs y si conviene IA en el panel |
 | [CHANGELOG.md](CHANGELOG.md) | Versiones y cambios (versionado semántico, API `/api/v1`) |
+| [docs/diagramas/](docs/diagramas/) | Diagramas UML (casos de uso, actividades, secuencia, estados, clases, ER, componentes, despliegue) |
 | [docs/INFORME-FINAL.md](docs/INFORME-FINAL.md) | Informe por fases y lista de producción |
 | [docs/investigacion/](docs/investigacion/) | Precios y condiciones verificados (hosting, dominio, pagos, tipo de cambio, legal) |

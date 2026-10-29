@@ -1,0 +1,9 @@
+flowchart LR
+  U["📱💻 Clientes y gerente"] -->|HTTPS| V["Vercel / Cloudflare Pages<br/>frontend estático (CDN)<br/>reescribe /api"]
+  V -->|/api/v1| R["Render<br/>API Node (procesos)<br/>salud /api/v1/health"]
+  R -->|SSL| P[("PostgreSQL gestionado<br/>Render Postgres o Neon<br/>respaldos")]
+  R --> R2[("Cloudflare R2<br/>imágenes")]
+  GH["GitHub<br/>repositorio"] --> CI["GitHub Actions<br/>pruebas · lint · build · secretos"]
+  CI -->|"verde ✔"| R
+  CI -->|"verde ✔"| V
+  MON["Monitor externo"] -.->|cada minuto| R
